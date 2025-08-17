@@ -1,5 +1,4 @@
-// Профессиональный астрологический калькулятор с улучшенной обработкой ошибок
-
+// Профессиональный астрологический калькулятор с исправленной обработкой ошибок
 // Данные приложения
 const APP_DATA = {
     cities: [
@@ -418,7 +417,6 @@ function calculateAscendantMC(astroDate, observer) {
     }
 }
 
-// Остальные функции остаются прежними но с улучшенной обработкой ошибок...
 function calculateHouses(astroDate, latitude, longitude, system, ascendant) {
     const houses = [];
     
