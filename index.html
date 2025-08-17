@@ -6,137 +6,14 @@
     <title>Профессиональный Астрологический Калькулятор</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Chart.js - правильная UMD версия -->
+    <!-- Chart.js - рабочая версия -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Astronomy Engine - правильная рабочая версия -->
-    <script>
-        // Создаем заглушку для exports чтобы избежать ошибки
-        window.exports = window.exports || {};
-        window.module = window.module || { exports: {} };
-        
-        // Флаг загрузки
-        let astronomyEngineLoaded = false;
-        
-        // Улучшенный fallback для Astronomy Engine (только один раз)
-        function loadFallbackAstronomy() {
-            if (window.Astronomy && window.Astronomy.Body) {
-                return; // Уже загружена
-            }
-            
-            console.warn('🔄 Загружаем fallback Astronomy Engine');
-            
-            window.Astronomy = {
-                Body: {
-                    Sun: 'Sun', Moon: 'Moon', Mercury: 'Mercury', Venus: 'Venus',
-                    Mars: 'Mars', Jupiter: 'Jupiter', Saturn: 'Saturn',
-                    Uranus: 'Uranus', Neptune: 'Neptune', Pluto: 'Pluto'
-                },
-                
-                AstroTime: function(date) {
-                    this.ut = (date.getTime() / 86400000) + 2440587.5;
-                    this.AddDays = function(days) {
-                        const newDate = new Date(date.getTime() + days * 86400000);
-                        return new Astronomy.AstroTime(newDate);
-                    };
-                    return this;
-                },
-                
-                Observer: function(lat, lon, elev) {
-                    this.latitude = lat;
-                    this.longitude = lon;
-                    this.elevation = elev || 0;
-                    return this;
-                },
-                
-                Equator: function(body, time, observer, ofdate, aberration) {
-                    // Улучшенные fallback расчеты с реалистичными позициями
-                    const bodyIndex = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'].indexOf(body);
-                    const timeOffset = time.ut - 2451545.0; // Дни от эпохи J2000
-                    
-                    // Более точные средние долготы планет на эпоху J2000 + движение
-                    const meanLongitudes = [280.4665, 218.3165, 252.2509, 181.9798, 355.4330, 34.3515, 50.0774, 314.0550, 304.3487, 238.9290];
-                    const dailyMotions = [0.9856474, 13.176358, 4.092317, 1.602136, 0.524033, 0.083056, 0.033371, 0.011698, 0.005965, 0.003964];
-                    
-                    if (bodyIndex >= 0) {
-                        let longitude = (meanLongitudes[bodyIndex] + dailyMotions[bodyIndex] * timeOffset) % 360;
-                        if (longitude < 0) longitude += 360;
-                        
-                        // Добавляем небольшие вариации для реалистичности
-                        const variation = Math.sin(timeOffset * 0.01 + bodyIndex) * 5;
-                        longitude = (longitude + variation) % 360;
-                        if (longitude < 0) longitude += 360;
-                        
-                        const ra = longitude;
-                        const dec = Math.sin(longitude * Math.PI / 180) * 23.44; // Приблизительное склонение
-                        
-                        return { ra: ra, dec: dec };
-                    }
-                    
-                    return {
-                        ra: Math.random() * 360,
-                        dec: (Math.random() - 0.5) * 46.88
-                    };
-                },
-                
-                Ecliptic: function(equatorial) {
-                    // Преобразование экваториальных в эклиптические координаты
-                    const obliquity = 23.4397; // градусы
-                    const ra = equatorial.ra * Math.PI / 180;
-                    const dec = equatorial.dec * Math.PI / 180;
-                    const obl = obliquity * Math.PI / 180;
-                    
-                    const lon = Math.atan2(Math.sin(ra) * Math.cos(obl) + Math.tan(dec) * Math.sin(obl), Math.cos(ra));
-                    const lat = Math.asin(Math.sin(dec) * Math.cos(obl) - Math.cos(dec) * Math.sin(obl) * Math.sin(ra));
-                    
-                    let longitude = (lon * 180 / Math.PI + 360) % 360;
-                    if (longitude < 0) longitude += 360;
-                    
-                    return {
-                        lon: longitude,
-                        lat: lat * 180 / Math.PI
-                    };
-                },
-                
-                SiderealTime: function(time) {
-                    // Звездное время Гринвича
-                    const jd = time.ut;
-                    const T = (jd - 2451545.0) / 36525.0;
-                    const theta0 = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T - T * T * T / 38710000.0;
-                    return ((theta0 % 360) + 360) % 360 / 15.0; // в часах
-                }
-            };
-            
-            astronomyEngineLoaded = true;
-            console.log('✅ Fallback Astronomy Engine загружена успешно');
-        }
-        
-        // Проверка основной библиотеки
-        function checkMainAstronomy() {
-            if (typeof Astronomy !== 'undefined' && Astronomy.Body) {
-                astronomyEngineLoaded = true;
-                console.log('✅ Основная Astronomy Engine загружена успешно');
-            } else {
-                console.warn('⚠️ Основная библиотека не загрузилась, используем fallback');
-                loadFallbackAstronomy();
-            }
-        }
-    </script>
+    <!-- Astronomy Engine - ПРОСТАЯ загрузка без конфликтов -->
+    <script src="https://unpkg.com/astronomy-engine@2.1.19/astronomy.min.js"></script>
     
-    <!-- Основная библиотека Astronomy Engine - несколько вариантов -->
-    <script src="https://unpkg.com/astronomy-engine@2.1.19/astronomy.min.js" 
-            onload="checkMainAstronomy()" 
-            onerror="loadFallbackAstronomy()"></script>
-    
-    <!-- Дополнительная проверка через задержку -->
-    <script>
-        setTimeout(function() {
-            if (!astronomyEngineLoaded) {
-                console.warn('⏰ Таймаут загрузки библиотеки, активируем fallback');
-                loadFallbackAstronomy();
-            }
-        }, 2000);
-    </script>
+    <!-- app.js сам разберётся с загрузкой -->
+    <script src="app.js"></script>
 </head>
 <body>
     <div class="container">
@@ -145,6 +22,7 @@
             <p class="subtitle">Точные расчеты с использованием Astronomy Engine (±1 дуговая минута)</p>
             <p class="description">Профессиональная библиотека обеспечивает астрономическую точность расчетов планетарных позиций, что критически важно для серьезной астрологической работы.</p>
         </header>
+        
         <section class="input-section">
             <div class="card">
                 <div class="card__header">
@@ -216,6 +94,7 @@
                 </div>
             </div>
         </section>
+        
         <section class="results-section hidden" id="results-section">
             <div class="birth-info card">
                 <div class="card__header">
@@ -321,6 +200,5 @@
             </div>
         </section>
     </div>
-    <script src="app.js"></script>
 </body>
 </html>
