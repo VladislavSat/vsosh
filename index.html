@@ -9,14 +9,8 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Заглушка для exports -->
-    <script>
-        window.exports = window.exports || {};
-        window.module = window.module || { exports: {} };
-    </script>
-    
-    <!-- Astronomy Engine - АЛЬТЕРНАТИВНЫЙ CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.min.js"></script>
+    <!-- Astronomy Engine - ПРАВИЛЬНАЯ ссылка на browser-версию -->
+    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"></script>
     
     <script src="app.js"></script>
 </head>
