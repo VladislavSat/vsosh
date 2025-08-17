@@ -155,13 +155,33 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
     </style>
+    
+    <!-- Заглушки для CommonJS -->
+    <script>
+        window.exports = {};
+        window.module = { exports: {} };
+    </script>
+    
+    <!-- ЛОКАЛЬНЫЙ файл Astronomy Engine -->
+    <script src="astronomy.browser.min.js"></script>
+    
+    <!-- Основной скрипт -->
+    <script src="app.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🌟 Профессиональный Астрологический Калькулятор</h1>
-            <p class="subtitle">Точные расчеты • Автономная система • Работает без интернета</p>
+            <p class="subtitle">Профессиональная точность • VSOP-87 • Локальная библиотека</p>
         </header>
 
         <div id="status"></div>
@@ -289,7 +309,5 @@
             </div>
         </section>
     </div>
-    
-    <script src="app.js"></script>
 </body>
 </html>
