@@ -9,10 +9,16 @@
     <!-- Chart.js - рабочая версия -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Astronomy Engine - ПРОСТАЯ загрузка без конфликтов -->
+    <!-- ЗАГЛУШКА для exports ПЕРЕД загрузкой astronomy -->
+    <script>
+        window.exports = window.exports || {};
+        window.module = window.module || { exports: {} };
+    </script>
+    
+    <!-- Astronomy Engine - ИСПРАВЛЕННАЯ загрузка -->
     <script src="https://unpkg.com/astronomy-engine@2.1.19/astronomy.min.js"></script>
     
-    <!-- app.js сам разберётся с загрузкой -->
+    <!-- app.js подключается ПОСЛЕ библиотек -->
     <script src="app.js"></script>
 </head>
 <body>
