@@ -1,236 +1,74 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профессиональный Астрологический Калькулятор</title>
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Заглушка для exports -->
-    <script>
-        window.exports = window.exports || {};
-        window.module = window.module || { exports: {} };
-    </script>
-    
-    <!-- Astronomy Engine - НЕСКОЛЬКО ВАРИАНТОВ ЗАГРУЗКИ -->
-    <script src="https://unpkg.com/astronomy-engine@2.1.19/astronomy.browser.min.js" 
-            onload="console.log('✅ Astronomy Engine загружена с unpkg')"
-            onerror="loadFromJsDelivr()"></script>
-    
-    <script>
-        function loadFromJsDelivr() {
-            console.log('📡 Пробуем jsDelivr...');
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js';
-            script.onload = () => console.log('✅ Astronomy Engine загружена с jsDelivr');
-            script.onerror = loadFromGithub;
-            document.head.appendChild(script);
-        }
-        
-        function loadFromGithub() {
-            console.log('📡 Пробуем GitHub...');
-            const script = document.createElement('script');
-            script.src = 'https://raw.githubusercontent.com/cosinekitty/astronomy/master/js/astronomy.browser.min.js';
-            script.onload = () => console.log('✅ Astronomy Engine загружена с GitHub');
-            script.onerror = () => console.warn('⚠️ Все CDN недоступны, используем fallback');
-            document.head.appendChild(script);
-        }
-    </script>
-    
-    <script src="app.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Профессиональный Астрологический Калькулятор</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Заглушка CommonJS -->
+  <script> window.exports = {}; window.module = { exports: {} }; </script>
+
+  <!-- Astronomy Engine (browser-бандл).  По onload → запускаем initApp -->
+  <script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"
+          onload="window.dispatchEvent(new Event('AstroReady'))"></script>
+
+  <!-- Основной скрипт приложения -->
+  <script src="app.js" defer></script>
 </head>
+
 <body>
-    <div class="container">
-        <header>
-            <h1>Профессиональный Астрологический Калькулятор</h1>
-            <p class="subtitle">Точные расчеты с использованием Astronomy Engine (±1 дуговая минута)</p>
-            <p class="description">Профессиональная библиотека обеспечивает астрономическую точность расчетов планетарных позиций, что критически важно для серьезной астрологической работы.</p>
-        </header>
-        
-        <section class="input-section">
-            <div class="card">
-                <div class="card__header">
-                    <h2>Данные рождения</h2>
-                </div>
-                <div class="card__body">
-                    <form id="birth-form" class="birth-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="birth-date" class="form-label">Дата рождения</label>
-                                <input type="date" id="birth-date" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="birth-time" class="form-label">Время рождения</label>
-                                <input type="time" id="birth-time" class="form-control" step="60" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="city" class="form-label">Город</label>
-                                <select id="city" class="form-control">
-                                    <option value="">Выберите город</option>
-                                    <option value="moscow">Москва</option>
-                                    <option value="spb">Санкт-Петербург</option>
-                                    <option value="novosibirsk">Новосибирск</option>
-                                    <option value="ekaterinburg">Екатеринбург</option>
-                                    <option value="nizhny">Нижний Новгород</option>
-                                    <option value="kazan">Казань</option>
-                                    <option value="krasnodar">Краснодар</option>
-                                    <option value="london">Лондон</option>
-                                    <option value="newyork">Нью-Йорк</option>
-                                    <option value="paris">Париж</option>
-                                    <option value="tokyo">Токио</option>
-                                    <option value="delhi">Дели</option>
-                                    <option value="custom">Другой город...</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="house-system" class="form-label">Система домов</label>
-                                <select id="house-system" class="form-control">
-                                    <option value="placidus">Placidus</option>
-                                    <option value="koch">Koch</option>
-                                    <option value="equal">Equal House</option>
-                                    <option value="whole">Whole Sign</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="coordinates-section" id="coordinates-section">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="latitude" class="form-label">Широта</label>
-                                    <input type="number" id="latitude" class="form-control" step="0.0001" min="-90" max="90" placeholder="55.7558">
-                                </div>
-                                <div class="form-group">
-                                    <label for="longitude" class="form-label">Долгота</label>
-                                    <input type="number" id="longitude" class="form-control" step="0.0001" min="-180" max="180" placeholder="37.6176">
-                                </div>
-                                <div class="form-group">
-                                    <label for="timezone" class="form-label">Часовой пояс (UTC)</label>
-                                    <input type="number" id="timezone" class="form-control" step="0.5" min="-12" max="14" placeholder="3">
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <span class="btn-text">Рассчитать карту</span>
-                            <span class="btn-loading hidden">Расчет...</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </section>
-        
-        <section class="results-section hidden" id="results-section">
-            <div class="birth-info card">
-                <div class="card__header">
-                    <h2>Информация о рождении</h2>
-                </div>
-                <div class="card__body">
-                    <div id="birth-info-content"></div>
-                </div>
-            </div>
-            
-            <div class="planets-section card">
-                <div class="card__header">
-                    <h2>Позиции планет</h2>
-                </div>
-                <div class="card__body">
-                    <div class="table-container">
-                        <table class="planets-table" id="planets-table">
-                            <thead>
-                                <tr>
-                                    <th>Планета</th>
-                                    <th>Знак</th>
-                                    <th>Позиция</th>
-                                    <th>Дом</th>
-                                    <th>Статус</th>
-                                </tr>
-                            </thead>
-                            <tbody id="planets-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="houses-section card">
-                <div class="card__header">
-                    <h2>Дома и куспиды</h2>
-                </div>
-                <div class="card__body">
-                    <div class="table-container">
-                        <table class="houses-table" id="houses-table">
-                            <thead>
-                                <tr>
-                                    <th>Дом</th>
-                                    <th>Куспид</th>
-                                    <th>Знак</th>
-                                    <th>Правитель</th>
-                                </tr>
-                            </thead>
-                            <tbody id="houses-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="aspects-section card">
-                <div class="card__header">
-                    <h2>Аспекты</h2>
-                </div>
-                <div class="card__body">
-                    <div class="table-container">
-                        <table class="aspects-table" id="aspects-table">
-                            <thead>
-                                <tr>
-                                    <th>Планета 1</th>
-                                    <th>Аспект</th>
-                                    <th>Планета 2</th>
-                                    <th>Орб</th>
-                                    <th>Точность</th>
-                                </tr>
-                            </thead>
-                            <tbody id="aspects-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="charts-section">
-                <div class="chart-row">
-                    <div class="card chart-card">
-                        <div class="card__header">
-                            <h3>Распределение планет по знакам</h3>
-                        </div>
-                        <div class="card__body">
-                            <div class="chart-container" style="position: relative; height: 400px;">
-                                <canvas id="signs-chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card chart-card">
-                        <div class="card__header">
-                            <h3>Сила планет</h3>
-                        </div>
-                        <div class="card__body">
-                            <div class="chart-container" style="position: relative; height: 400px;">
-                                <canvas id="strength-chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="interpretation-section card">
-                <div class="card__header">
-                    <h2>Интерпретация</h2>
-                </div>
-                <div class="card__body">
-                    <div id="interpretation-content"></div>
-                </div>
-            </div>
-        </section>
-    </div>
+  <div class="container">
+    <header>
+      <h1>Профессиональный Астрологический Калькулятор</h1>
+      <p class="subtitle">Точность ±1′ дуги (VSOP-87 + NOVAS)</p>
+    </header>
+
+    <!-- ===== Форма ввода ===== -->
+    <form id="birth-form" class="card">
+      <h2>Данные рождения</h2>
+      <div class="row">
+        <label>Дата <input type="date"  id="birth-date" required></label>
+        <label>Время <input type="time" id="birth-time" step="60" required></label>
+      </div>
+      <div class="row">
+        <label>Город
+          <select id="city">
+            <option value="moscow">Москва</option>
+            <option value="spb">С-Петербург</option>
+            <option value="london">Лондон</option>
+            <option value="tokyo">Токио</option>
+            <option value="custom">Другой…</option>
+          </select>
+        </label>
+        <label>Система домов
+          <select id="house-system">
+            <option value="placidus">Placidus</option>
+            <option value="koch">Koch</option>
+            <option value="equal">Equal</option>
+            <option value="whole">Whole Sign</option>
+          </select>
+        </label>
+      </div>
+      <div id="manual" class="row">
+        <label>Lat <input id="latitude"  type="number" step="0.0001"></label>
+        <label>Lon <input id="longitude" type="number" step="0.0001"></label>
+        <label>TZ  <input id="timezone"  type="number" step="0.5"></label>
+      </div>
+      <button type="submit">Рассчитать карту</button>
+    </form>
+
+    <!-- ===== Результаты ===== -->
+    <section id="results" class="hidden">
+      <div><h3>Инфо</h3><div id="birth-info"></div></div>
+      <div><h3>Планеты</h3><table id="planets"></table></div>
+      <div><h3>Дома</h3>   <table id="houses"></table></div>
+      <div><h3>Аспекты</h3><table id="aspects"></table></div>
+      <canvas id="signs-chart" height="350"></canvas>
+    </section>
+  </div>
 </body>
 </html>
