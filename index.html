@@ -5,16 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профессиональный Астрологический Калькулятор</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Chart.js для диаграмм -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
-    <!-- Astronomy Engine - локальная загрузка с fallback -->
+    
+    <!-- Chart.js - правильная UMD версия -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Astronomy Engine с улучшенным fallback -->
     <script>
         // Создаем заглушку для exports чтобы избежать ошибки
         window.exports = window.exports || {};
         window.module = window.module || { exports: {} };
+        
+        // Улучшенный fallback для Astronomy Engine
+        function loadFallbackAstronomy() {
+            console.warn('🔄 Загружаем fallback Astronomy Engine');
+            
+            window.Astronomy = window.Astronomy || {
+                Body: {
+                    Sun: 'Sun', Moon: 'Moon', Mercury: 'Mercury', Venus: 'Venus',
+                    Mars: 'Mars', Jupiter: 'Jupiter', Saturn: 'Saturn',
+                    Uranus: 'Uranus', Neptune: 'Neptune', Pluto: 'Pluto'
+                },
+                
+                AstroTime: function(date) {
+                    this.ut = (date.getTime() / 86400000) + 2440587.5;
+                    this.AddDays = function(days) {
+                        const newDate = new Date(date.getTime() + days * 86400000);
+                        return new Astronomy.AstroTime(newDate);
+                    };
+                    return this;
+                },
+                
+                Observer: function(lat, lon, elev) {
+                    this.latitude = lat;
+                    this.longitude = lon;
+                    this.elevation = elev || 0;
+                    return this;
+                },
+                
+                Equator: function(body, time, observer, ofdate, aberration) {
+                    // Улучшенные fallback расчеты с учетом времени
+                    const bodyIndex = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'].indexOf(body);
+                    const timeOffset = time.ut - 2451545.0; // Дни от эпохи J2000
+                    
+                    // Примерные средние долготы планет на эпоху J2000 + движение
+                    const meanLongitudes = [280.46, 218.32, 252.25, 181.98, 355.43, 34.35, 50.08, 314.05, 304.35, 238.93];
+                    const dailyMotions = [0.9856, 13.1764, 4.0923, 1.6021, 0.5240, 0.0831, 0.0334, 0.0116, 0.0059, 0.0039];
+                    
+                    if (bodyIndex >= 0) {
+                        const longitude = (meanLongitudes[bodyIndex] + dailyMotions[bodyIndex] * timeOffset) % 360;
+                        const ra = longitude;
+                        const dec = Math.sin(longitude * Math.PI / 180) * 23.44; // Приблизительное склонение
+                        
+                        return { ra: ra, dec: dec };
+                    }
+                    
+                    return {
+                        ra: Math.random() * 360,
+                        dec: (Math.random() - 0.5) * 46.88
+                    };
+                },
+                
+                Ecliptic: function(equatorial) {
+                    // Преобразование экваториальных в эклиптические координаты
+                    const obliquity = 23.4397; // градусы
+                    const ra = equatorial.ra * Math.PI / 180;
+                    const dec = equatorial.dec * Math.PI / 180;
+                    const obl = obliquity * Math.PI / 180;
+                    
+                    const lon = Math.atan2(Math.sin(ra) * Math.cos(obl) + Math.tan(dec) * Math.sin(obl), Math.cos(ra));
+                    const lat = Math.asin(Math.sin(dec) * Math.cos(obl) - Math.cos(dec) * Math.sin(obl) * Math.sin(ra));
+                    
+                    return {
+                        lon: (lon * 180 / Math.PI + 360) % 360,
+                        lat: lat * 180 / Math.PI
+                    };
+                },
+                
+                SiderealTime: function(time) {
+                    // Звездное время Гринвича
+                    const jd = time.ut;
+                    const T = (jd - 2451545.0) / 36525.0;
+                    const theta0 = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T - T * T * T / 38710000.0;
+                    return (theta0 % 360) / 15.0; // в часах
+                }
+            };
+            
+            console.log('✅ Fallback Astronomy Engine загружена');
+            return true;
+        }
+        
+        // Попытка загрузки основной библиотеки с таймаутом
+        let astronomyLoaded = false;
+        let loadTimeout = setTimeout(() => {
+            if (!astronomyLoaded) {
+                console.warn('⏰ Таймаут загрузки основной библиотеки, используем fallback');
+                loadFallbackAstronomy();
+            }
+        }, 3000);
+        
+        // Проверка после основной загрузки
+        function checkMainAstronomy() {
+            if (typeof Astronomy !== 'undefined' && Astronomy.Body) {
+                astronomyLoaded = true;
+                clearTimeout(loadTimeout);
+                console.log('✅ Основная Astronomy Engine загружена успешно');
+            }
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.0.12/astronomy.min.js" 
+    
+    <!-- Основная библиотека Astronomy Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.min.js" 
+            onload="checkMainAstronomy()" 
             onerror="loadFallbackAstronomy()"></script>
+    
+    <!-- Дополнительная проверка через небольшую задержку -->
+    <script>
+        setTimeout(function() {
+            if (typeof Astronomy === 'undefined') {
+                loadFallbackAstronomy();
+            }
+        }, 1500);
+    </script>
 </head>
 <body>
     <div class="container">
@@ -199,54 +310,6 @@
             </div>
         </section>
     </div>
-    <script>
-        // Fallback функция для загрузки Astronomy Engine
-        function loadFallbackAstronomy() {
-            console.warn('Основная загрузка Astronomy Engine не удалась, используем fallback');
-            // Создаем минимальную заглушку
-            window.Astronomy = window.Astronomy || {
-                Body: {
-                    Sun: 'Sun', Moon: 'Moon', Mercury: 'Mercury', Venus: 'Venus',
-                    Mars: 'Mars', Jupiter: 'Jupiter', Saturn: 'Saturn',
-                    Uranus: 'Uranus', Neptune: 'Neptune', Pluto: 'Pluto'
-                },
-                AstroTime: function(date) {
-                    this.ut = (date.getTime() / 86400000) + 2440587.5;
-                    this.AddDays = function(days) {
-                        const newDate = new Date(date.getTime() + days * 86400000);
-                        return new Astronomy.AstroTime(newDate);
-                    };
-                },
-                Observer: function(lat, lon, elev) {
-                    this.latitude = lat;
-                    this.longitude = lon;
-                    this.elevation = elev || 0;
-                },
-                Equator: function(body, time, observer, ofdate, aberration) {
-                    // Упрощенные расчеты для демонстрации
-                    return {
-                        ra: Math.random() * 360,
-                        dec: (Math.random() - 0.5) * 90
-                    };
-                },
-                Ecliptic: function(equatorial) {
-                    return {
-                        lon: Math.random() * 360,
-                        lat: (Math.random() - 0.5) * 10
-                    };
-                },
-                SiderealTime: function(time) {
-                    return (time.ut - 2451545.0) * 366.2422 / 365.2422;
-                }
-            };
-        }
-        // Проверяем загрузку через небольшую задержку
-        setTimeout(function() {
-            if (typeof Astronomy === 'undefined') {
-                loadFallbackAstronomy();
-            }
-        }, 1000);
-    </script>
     <script src="app.js"></script>
 </body>
 </html>
