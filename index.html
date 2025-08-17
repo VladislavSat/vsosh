@@ -4,70 +4,114 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Профессиональный Астрологический Калькулятор</title>
-  <link rel="stylesheet" href="style.css" />
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #fff; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header { text-align: center; margin-bottom: 30px; }
+    h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    .subtitle { font-size: 1.1rem; opacity: 0.9; }
+    
+    .card { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+    .row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 200px; }
+    
+    label { display: block; margin-bottom: 5px; font-weight: 500; }
+    input, select { width: 100%; padding: 12px; border: none; border-radius: 8px; background: rgba(255,255,255,0.9); color: #333; font-size: 14px; }
+    input:focus, select:focus { outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.4); }
+    
+    button { background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
+    button:hover { transform: translateY(-2px); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .hidden { display: none; }
+    #manual { display: none; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    th { background: rgba(255,255,255,0.1); font-weight: 600; }
+    tr:hover { background: rgba(255,255,255,0.05); }
+    
+    canvas { max-width: 100%; height: 350px; background: rgba(255,255,255,0.1); border-radius: 10px; }
+    
+    #results { display: grid; gap: 20px; }
+    #results > div { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; }
+    #results h3 { margin-bottom: 15px; color: #fff; font-size: 1.3rem; }
+  </style>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <!-- Заглушка CommonJS -->
-  <script> window.exports = {}; window.module = { exports: {} }; </script>
-
-  <!-- Astronomy Engine (browser-бандл).  По onload → запускаем initApp -->
+  <script>window.exports = {}; window.module = { exports: {} };</script>
+  <!-- Astronomy Engine -->
   <script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"
           onload="window.dispatchEvent(new Event('AstroReady'))"></script>
-
-  <!-- Основной скрипт приложения -->
+  <!-- Основной скрипт -->
   <script src="app.js" defer></script>
 </head>
 
 <body>
   <div class="container">
     <header>
-      <h1>Профессиональный Астрологический Калькулятор</h1>
-      <p class="subtitle">Точность ±1′ дуги (VSOP-87 + NOVAS)</p>
+      <h1>🌟 Профессиональный Астрологический Калькулятор</h1>
+      <p class="subtitle">Точность ±1′ дуги • VSOP-87 • Профессиональные эфемериды</p>
     </header>
 
-    <!-- ===== Форма ввода ===== -->
     <form id="birth-form" class="card">
-      <h2>Данные рождения</h2>
+      <h2>📅 Данные рождения</h2>
       <div class="row">
-        <label>Дата <input type="date"  id="birth-date" required></label>
-        <label>Время <input type="time" id="birth-time" step="60" required></label>
+        <label>Дата рождения <input type="date" id="birth-date" required></label>
+        <label>Время рождения <input type="time" id="birth-time" step="60" required></label>
       </div>
       <div class="row">
         <label>Город
           <select id="city">
-            <option value="moscow">Москва</option>
-            <option value="spb">С-Петербург</option>
-            <option value="london">Лондон</option>
-            <option value="tokyo">Токио</option>
-            <option value="custom">Другой…</option>
+            <option value="moscow">🏛️ Москва</option>
+            <option value="spb">🏰 Санкт-Петербург</option>
+            <option value="london">🌉 Лондон</option>
+            <option value="tokyo">🗾 Токио</option>
+            <option value="custom">✏️ Ручной ввод...</option>
           </select>
         </label>
         <label>Система домов
           <select id="house-system">
             <option value="placidus">Placidus</option>
             <option value="koch">Koch</option>
-            <option value="equal">Equal</option>
+            <option value="equal">Equal House</option>
             <option value="whole">Whole Sign</option>
           </select>
         </label>
       </div>
       <div id="manual" class="row">
-        <label>Lat <input id="latitude"  type="number" step="0.0001"></label>
-        <label>Lon <input id="longitude" type="number" step="0.0001"></label>
-        <label>TZ  <input id="timezone"  type="number" step="0.5"></label>
+        <label>Широта <input id="latitude" type="number" step="0.0001" placeholder="55.7558"></label>
+        <label>Долгота <input id="longitude" type="number" step="0.0001" placeholder="37.6176"></label>
+        <label>Часовой пояс <input id="timezone" type="number" step="0.5" placeholder="3"></label>
       </div>
-      <button type="submit">Рассчитать карту</button>
+      <button type="submit">🔮 Рассчитать натальную карту</button>
     </form>
 
-    <!-- ===== Результаты ===== -->
     <section id="results" class="hidden">
-      <div><h3>Инфо</h3><div id="birth-info"></div></div>
-      <div><h3>Планеты</h3><table id="planets"></table></div>
-      <div><h3>Дома</h3>   <table id="houses"></table></div>
-      <div><h3>Аспекты</h3><table id="aspects"></table></div>
-      <canvas id="signs-chart" height="350"></canvas>
+      <div>
+        <h3>ℹ️ Информация о рождении</h3>
+        <div id="birth-info"></div>
+      </div>
+      <div>
+        <h3>🪐 Позиции планет</h3>
+        <table id="planets"></table>
+      </div>
+      <div>
+        <h3>🏠 Астрологические дома</h3>
+        <table id="houses"></table>
+      </div>
+      <div>
+        <h3>✨ Аспекты</h3>
+        <table id="aspects"></table>
+      </div>
+      <div>
+        <h3>📊 Распределение по знакам</h3>
+        <canvas id="signs-chart"></canvas>
+      </div>
     </section>
   </div>
 </body>
