@@ -23,7 +23,6 @@
             <p class="subtitle">Точные расчеты с использованием Astronomy Engine (±1 дуговая минута)</p>
             <p class="description">Профессиональная библиотека обеспечивает астрономическую точность расчетов планетарных позиций, что критически важно для серьезной астрологической работы.</p>
         </header>
-
         <section class="input-section">
             <div class="card">
                 <div class="card__header">
@@ -41,7 +40,6 @@
                                 <input type="time" id="birth-time" class="form-control" step="60" required>
                             </div>
                         </div>
-
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="city" class="form-label">Город</label>
@@ -72,7 +70,6 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="coordinates-section" id="coordinates-section">
                             <div class="form-row">
                                 <div class="form-group">
@@ -89,7 +86,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <button type="submit" class="btn btn-primary">
                             <span class="btn-text">Рассчитать карту</span>
                             <span class="btn-loading hidden">Расчет...</span>
@@ -98,7 +94,6 @@
                 </div>
             </div>
         </section>
-
         <section class="results-section hidden" id="results-section">
             <div class="birth-info card">
                 <div class="card__header">
@@ -108,7 +103,6 @@
                     <div id="birth-info-content"></div>
                 </div>
             </div>
-
             <div class="planets-section card">
                 <div class="card__header">
                     <h2>Позиции планет</h2>
@@ -130,7 +124,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="houses-section card">
                 <div class="card__header">
                     <h2>Дома и куспиды</h2>
@@ -151,7 +144,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="aspects-section card">
                 <div class="card__header">
                     <h2>Аспекты</h2>
@@ -173,7 +165,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="charts-section">
                 <div class="chart-row">
                     <div class="card chart-card">
@@ -186,7 +177,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="card chart-card">
                         <div class="card__header">
                             <h3>Сила планет</h3>
@@ -199,7 +189,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="interpretation-section card">
                 <div class="card__header">
                     <h2>Интерпретация</h2>
@@ -210,7 +199,6 @@
             </div>
         </section>
     </div>
-
     <script>
         // Fallback функция для загрузки Astronomy Engine
         function loadFallbackAstronomy() {
@@ -252,7 +240,6 @@
                 }
             };
         }
-
         // Проверяем загрузку через небольшую задержку
         setTimeout(function() {
             if (typeof Astronomy === 'undefined') {
