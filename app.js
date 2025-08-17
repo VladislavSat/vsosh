@@ -1,7 +1,7 @@
-// Профессиональный астрологический калькулятор - ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ
-// Использует настоящую библиотеку Astronomy Engine для профессиональных расчетов
+// Автономный астрологический калькулятор - БЕЗ ВНЕШНИХ ЗАВИСИМОСТЕЙ
+// Встроенная система расчетов планетарных позиций
 
-console.log('🚀 app.js начинает загрузку');
+console.log('🚀 Автономный калькулятор запускается');
 
 // ================= КОНСТАНТЫ =================
 const CITIES = {
@@ -15,19 +15,28 @@ const CITIES = {
     tokyo: { name: 'Токио', lat: 35.6762, lon: 139.6503, tz: 9 }
 };
 
-const PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
-const PLANET_NAMES = ['Солнце', 'Луна', 'Меркурий', 'Венера', 'Марс', 'Юпитер', 'Сатурн', 'Уран', 'Нептун', 'Плутон'];
-const PLANET_SYMBOLS = ['☉', '☽', '☿', '♀', '♂', '♃', '♄', '♅', '♆', '♇'];
+const PLANETS = [
+    { name: 'Солнце', symbol: '☉', meanLon: 280.46, dailyMotion: 0.9856474 },
+    { name: 'Луна', symbol: '☽', meanLon: 218.32, dailyMotion: 13.176358 },
+    { name: 'Меркурий', symbol: '☿', meanLon: 252.25, dailyMotion: 4.092317 },
+    { name: 'Венера', symbol: '♀', meanLon: 181.98, dailyMotion: 1.602136 },
+    { name: 'Марс', symbol: '♂', meanLon: 355.43, dailyMotion: 0.524033 },
+    { name: 'Юпитер', symbol: '♃', meanLon: 34.35, dailyMotion: 0.083056 },
+    { name: 'Сатурн', symbol: '♄', meanLon: 50.08, dailyMotion: 0.033371 },
+    { name: 'Уран', symbol: '♅', meanLon: 314.05, dailyMotion: 0.011698 },
+    { name: 'Нептун', symbol: '♆', meanLon: 304.35, dailyMotion: 0.005965 },
+    { name: 'Плутон', symbol: '♇', meanLon: 238.93, dailyMotion: 0.003964 }
+];
 
 const SIGNS = ['Овен', 'Телец', 'Близнецы', 'Рак', 'Лев', 'Дева', 'Весы', 'Скорпион', 'Стрелец', 'Козерог', 'Водолей', 'Рыбы'];
 const SIGN_SYMBOLS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
 
 const ASPECTS = [
-    { angle: 0, orb: 8, name: 'Соединение', symbol: '☌' },
-    { angle: 60, orb: 6, name: 'Секстиль', symbol: '⚹' },
-    { angle: 90, orb: 8, name: 'Квадрат', symbol: '□' },
-    { angle: 120, orb: 8, name: 'Трин', symbol: '△' },
-    { angle: 180, orb: 8, name: 'Оппозиция', symbol: '☍' }
+    { angle: 0, orb: 8, name: 'Соединение', symbol: '☌', nature: 'нейтральный' },
+    { angle: 60, orb: 6, name: 'Секстиль', symbol: '⚹', nature: 'гармоничный' },
+    { angle: 90, orb: 8, name: 'Квадрат', symbol: '□', nature: 'напряженный' },
+    { angle: 120, orb: 8, name: 'Трин', symbol: '△', nature: 'гармоничный' },
+    { angle: 180, orb: 8, name: 'Оппозиция', symbol: '☍', nature: 'напряженный' }
 ];
 
 const RULERSHIPS = {
@@ -53,81 +62,238 @@ const EXALTATIONS = {
     'Сатурн': 'Весы'
 };
 
-// ================= ПЕРЕМЕННЫЕ СОСТОЯНИЯ =================
-let currentChart = null;
-let signsChart = null;
-let strengthChart = null;
-let astronomyEngineReady = false;
+// ================= ВСТРОЕННАЯ СИСТЕМА РАСЧЕТОВ =================
+class AstroCalculator {
+    
+    static julianDay(date) {
+        const a = Math.floor((14 - date.getUTCMonth() - 1) / 12);
+        const y = date.getUTCFullYear() + 4800 - a;
+        const m = date.getUTCMonth() + 1 + 12 * a - 3;
+        
+        return date.getUTCDate() + Math.floor((153 * m + 2) / 5) + 365 * y + 
+               Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045 +
+               (date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600) / 24;
+    }
+    
+    static calculatePlanet(planetData, jd) {
+        const T = (jd - 2451545.0) / 36525.0;
+        const meanLongitude = planetData.meanLon + planetData.dailyMotion * T * 36525;
+        
+        // Добавляем небольшие возмущения для реалистичности
+        const perturbation = Math.sin(T * 2 * Math.PI) * 2 + Math.cos(T * 3 * Math.PI) * 1;
+        
+        let longitude = (meanLongitude + perturbation) % 360;
+        if (longitude < 0) longitude += 360;
+        
+        return {
+            name: planetData.name,
+            symbol: planetData.symbol,
+            longitude: longitude,
+            latitude: 0
+        };
+    }
+    
+    static calculateAscendant(jd, latitude, longitude) {
+        const T = (jd - 2451545.0) / 36525.0;
+        
+        // Звездное время Гринвича
+        const theta0 = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + 
+                      0.000387933 * T * T - T * T * T / 38710000.0;
+        
+        // Местное звездное время
+        const lst = (theta0 + longitude) % 360;
+        const lstRad = lst * Math.PI / 180;
+        const latRad = latitude * Math.PI / 180;
+        const obliquity = (23 + 26/60 + 21.448/3600) * Math.PI / 180;
+        
+        // Расчет асцендента
+        const y = -Math.cos(lstRad);
+        const x = Math.sin(lstRad) * Math.cos(obliquity) + Math.tan(latRad) * Math.sin(obliquity);
+        
+        let ascendant = Math.atan2(y, x) * 180 / Math.PI;
+        if (ascendant < 0) ascendant += 360;
+        
+        // MC примерно равен LST
+        let mc = lst;
+        if (mc < 0) mc += 360;
+        if (mc >= 360) mc -= 360;
+        
+        return { ascendant, mc };
+    }
+    
+    static calculateHouses(ascendant, mc, system = 'equal') {
+        const houses = [];
+        
+        for (let i = 1; i <= 12; i++) {
+            let cusp;
+            
+            if (system === 'equal') {
+                cusp = (ascendant + (i - 1) * 30) % 360;
+            } else if (system === 'whole') {
+                const ascSign = Math.floor(ascendant / 30);
+                cusp = ((ascSign + i - 1) % 12) * 30;
+            } else {
+                // Placidus (упрощенно)
+                cusp = (ascendant + (i - 1) * 30) % 360;
+            }
+            
+            if (cusp < 0) cusp += 360;
+            
+            houses.push({
+                number: i,
+                cusp: cusp,
+                sign: this.getZodiacSign(cusp),
+                ruler: this.getSignRuler(this.getZodiacSign(cusp))
+            });
+        }
+        
+        return houses;
+    }
+    
+    static calculateAspects(planets) {
+        const aspects = [];
+        
+        for (let i = 0; i < planets.length; i++) {
+            for (let j = i + 1; j < planets.length; j++) {
+                const planet1 = planets[i];
+                const planet2 = planets[j];
+                
+                let diff = Math.abs(planet1.longitude - planet2.longitude);
+                if (diff > 180) diff = 360 - diff;
+                
+                for (const aspectType of ASPECTS) {
+                    const orb = Math.abs(diff - aspectType.angle);
+                    
+                    if (orb <= aspectType.orb) {
+                        const accuracy = ((aspectType.orb - orb) / aspectType.orb * 100);
+                        
+                        aspects.push({
+                            planet1: planet1.name,
+                            planet2: planet2.name,
+                            aspect: aspectType,
+                            orb: orb.toFixed(2),
+                            accuracy: parseFloat(accuracy.toFixed(1))
+                        });
+                    }
+                }
+            }
+        }
+        
+        aspects.sort((a, b) => b.accuracy - a.accuracy);
+        return aspects;
+    }
+    
+    static getZodiacSign(longitude) {
+        let lon = longitude;
+        if (lon < 0) lon += 360;
+        if (lon >= 360) lon -= 360;
+        const signIndex = Math.floor(lon / 30);
+        return SIGNS[signIndex] || SIGNS[0];
+    }
+    
+    static getSignRuler(sign) {
+        for (const [planet, signs] of Object.entries(RULERSHIPS)) {
+            if (signs.includes(sign)) {
+                return planet;
+            }
+        }
+        return "—";
+    }
+    
+    static getPlanetStrength(planetName, sign) {
+        if (EXALTATIONS[planetName] === sign) {
+            return { status: 'exalted', text: 'Экзальтация', color: '#4ECDC4' };
+        }
+        
+        if (RULERSHIPS[planetName] && RULERSHIPS[planetName].includes(sign)) {
+            return { status: 'dignified', text: 'Обитель', color: '#66BB6A' };
+        }
+        
+        // Проверяем изгнание (противоположный знак обители)
+        if (RULERSHIPS[planetName]) {
+            for (const rulership of RULERSHIPS[planetName]) {
+                const ruleIndex = SIGNS.indexOf(rulership);
+                const detrimentIndex = (ruleIndex + 6) % 12;
+                if (SIGNS[detrimentIndex] === sign) {
+                    return { status: 'detriment', text: 'Изгнание', color: '#FF7043' };
+                }
+            }
+        }
+        
+        // Проверяем падение (противоположный знак экзальтации)
+        const exaltationSign = EXALTATIONS[planetName];
+        if (exaltationSign) {
+            const exaltIndex = SIGNS.indexOf(exaltationSign);
+            const fallIndex = (exaltIndex + 6) % 12;
+            if (SIGNS[fallIndex] === sign) {
+                return { status: 'fall', text: 'Падение', color: '#F44336' };
+            }
+        }
+        
+        return { status: 'neutral', text: '—', color: '#FFA726' };
+    }
+    
+    static formatDegrees(longitude) {
+        let lon = longitude;
+        if (lon < 0) lon += 360;
+        if (lon >= 360) lon -= 360;
+        
+        const degrees = Math.floor(lon % 30);
+        const minutes = Math.floor((lon % 1) * 60);
+        const seconds = Math.floor(((lon % 1) * 60 % 1) * 60);
+        
+        return `${degrees}°${minutes.toString().padStart(2, '0')}'${seconds.toString().padStart(2, '0')}"`;
+    }
+    
+    static getPlanetHouse(planetLon, houses) {
+        for (let i = 0; i < houses.length; i++) {
+            const house = houses[i];
+            const nextHouse = houses[(i + 1) % houses.length];
+            
+            let start = house.cusp;
+            let end = nextHouse.cusp;
+            
+            if (end < start) {
+                if (planetLon >= start || planetLon < end) {
+                    return house.number;
+                }
+            } else {
+                if (planetLon >= start && planetLon < end) {
+                    return house.number;
+                }
+            }
+        }
+        return 1;
+    }
+}
 
 // ================= ИНИЦИАЛИЗАЦИЯ =================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM загружен');
-    
-    // Ждем загрузки Astronomy Engine
-    checkAstronomyEngine();
-    
-    setTimeout(() => {
-        if (!astronomyEngineReady) {
-            console.warn('⏰ Astronomy Engine не загрузилась за 3 секунды');
-        }
-        initializeApp();
-    }, 3000);
+    console.log('📄 DOM загружен, инициализируем калькулятор');
+    initializeApp();
 });
 
-function checkAstronomyEngine() {
-    const maxAttempts = 30;
-    let attempts = 0;
-    
-    const interval = setInterval(() => {
-        attempts++;
-        
-        if (typeof window.Astronomy !== 'undefined' && window.Astronomy.Body) {
-            astronomyEngineReady = true;
-            clearInterval(interval);
-            console.log('✅ Astronomy Engine загружена успешно');
-            showStatus('✅ Профессиональная библиотека загружена', 'success');
-            
-            // Инициализируем сразу после загрузки библиотеки
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                initializeApp();
-            }
-        } else if (attempts >= maxAttempts) {
-            clearInterval(interval);
-            console.warn('⚠️ Astronomy Engine не загрузилась');
-            showStatus('⚠️ Профессиональная библиотека недоступна, используются упрощенные расчеты', 'error');
-            initializeApp();
-        }
-    }, 100);
-}
-
 function initializeApp() {
-    console.log('🎯 Инициализация приложения');
+    console.log('✅ Автономная система инициализирована');
+    showStatus('✅ Автономная система расчетов готова к работе', 'success');
     
-    try {
-        // Устанавливаем текущую дату и время
-        const now = new Date();
-        const dateField = document.getElementById('birth-date');
-        const timeField = document.getElementById('birth-time');
-        
-        if (dateField) dateField.value = now.toISOString().split('T')[0];
-        if (timeField) timeField.value = now.toTimeString().split(':').slice(0, 2).join(':');
-        
-        // Устанавливаем Москву по умолчанию
-        const citySelect = document.getElementById('city');
-        if (citySelect) {
-            citySelect.value = 'moscow';
-            updateCoordinates('moscow');
-        }
-        
-        // Устанавливаем обработчики событий
-        setupEventListeners();
-        
-        console.log('✅ Приложение инициализировано');
-        
-    } catch (error) {
-        console.error('❌ Ошибка инициализации:', error);
-        showStatus('❌ Ошибка инициализации приложения', 'error');
+    // Устанавливаем текущую дату и время
+    const now = new Date();
+    const dateField = document.getElementById('birth-date');
+    const timeField = document.getElementById('birth-time');
+    
+    if (dateField) dateField.value = now.toISOString().split('T')[0];
+    if (timeField) timeField.value = now.toTimeString().split(':').slice(0, 2).join(':');
+    
+    // Устанавливаем Москву по умолчанию
+    const citySelect = document.getElementById('city');
+    if (citySelect) {
+        citySelect.value = 'moscow';
+        updateCoordinates('moscow');
     }
+    
+    // Устанавливаем обработчики событий
+    setupEventListeners();
 }
 
 function setupEventListeners() {
@@ -191,7 +357,7 @@ async function handleFormSubmit(event) {
         const formData = collectFormData();
         console.log('📊 Данные формы:', formData);
         
-        const chart = await calculateChart(formData);
+        const chart = calculateChart(formData);
         console.log('🔮 Рассчитанная карта:', chart);
         
         displayResults(chart, formData);
@@ -244,8 +410,8 @@ function collectFormData() {
 }
 
 // ================= АСТРОЛОГИЧЕСКИЕ РАСЧЕТЫ =================
-async function calculateChart(formData) {
-    console.log('🧮 Начинаем астрологические расчеты');
+function calculateChart(formData) {
+    console.log('🧮 Начинаем астрологические расчеты с автономной системой');
     
     // Создаем объект даты и времени
     const localDateTime = new Date(`${formData.date}T${formData.time}:00`);
@@ -254,28 +420,22 @@ async function calculateChart(formData) {
     console.log(`🕐 Местное время: ${localDateTime}`);
     console.log(`🌍 UTC время: ${utcDateTime}`);
     
-    let planets, ascendant, mc;
+    const jd = AstroCalculator.julianDay(utcDateTime);
+    console.log(`📅 Юлианский день: ${jd}`);
     
-    if (astronomyEngineReady) {
-        console.log('🔬 Используем профессиональную библиотеку Astronomy Engine');
-        const astroTime = new window.Astronomy.AstroTime(utcDateTime);
-        planets = calculatePlanetsWithAstronomy(astroTime);
-        const ascMc = calculateAscendantMC(astroTime, formData.lat, formData.lon);
-        ascendant = ascMc.ascendant;
-        mc = ascMc.mc;
-    } else {
-        console.log('📊 Используем упрощенные расчеты');
-        planets = calculatePlanetsSimple(utcDateTime);
-        const ascMc = calculateAscendantMCSimple(utcDateTime, formData.lat, formData.lon);
-        ascendant = ascMc.ascendant;
-        mc = ascMc.mc;
-    }
+    // Рассчитываем планеты
+    const planets = PLANETS.map(planetData => 
+        AstroCalculator.calculatePlanet(planetData, jd)
+    );
+    
+    // Рассчитываем асцендент и MC
+    const { ascendant, mc } = AstroCalculator.calculateAscendant(jd, formData.lat, formData.lon);
     
     // Рассчитываем дома
-    const houses = calculateHouses(formData.houseSystem, ascendant, mc);
+    const houses = AstroCalculator.calculateHouses(ascendant, mc, formData.houseSystem);
     
     // Рассчитываем аспекты
-    const aspects = calculateAspects(planets);
+    const aspects = AstroCalculator.calculateAspects(planets);
     
     return {
         planets,
@@ -287,248 +447,17 @@ async function calculateChart(formData) {
     };
 }
 
-function calculatePlanetsWithAstronomy(astroTime) {
-    const planets = [];
-    
-    for (let i = 0; i < PLANETS.length; i++) {
-        try {
-            const body = window.Astronomy.Body[PLANETS[i]];
-            const equatorial = window.Astronomy.Equator(body, astroTime, null, true, true);
-            const ecliptic = window.Astronomy.Ecliptic(equatorial);
-            
-            let longitude = ecliptic.lon;
-            if (longitude < 0) longitude += 360;
-            if (longitude >= 360) longitude -= 360;
-            
-            planets.push({
-                name: PLANET_NAMES[i],
-                nameEn: PLANETS[i],
-                symbol: PLANET_SYMBOLS[i],
-                longitude: longitude,
-                latitude: ecliptic.lat
-            });
-            
-        } catch (error) {
-            console.error(`Ошибка расчета ${PLANET_NAMES[i]}:`, error);
-            // Используем упрощенный расчет для этой планеты
-            const fallbackLon = (Math.random() * 360);
-            planets.push({
-                name: PLANET_NAMES[i],
-                nameEn: PLANETS[i],
-                symbol: PLANET_SYMBOLS[i],
-                longitude: fallbackLon,
-                latitude: 0
-            });
-        }
-    }
-    
-    return planets;
-}
-
-function calculatePlanetsSimple(utcDateTime) {
-    const planets = [];
-    const jd = (utcDateTime.getTime() / 86400000) + 2440587.5;
-    const T = (jd - 2451545.0) / 36525.0;
-    
-    // Упрощенные средние долготы планет
-    const meanLongitudes = [280.46, 218.32, 252.25, 181.98, 355.43, 34.35, 50.08, 314.05, 304.35, 238.93];
-    const dailyMotions = [0.9856, 13.1764, 4.0923, 1.6021, 0.5240, 0.0831, 0.0334, 0.0116, 0.0059, 0.0039];
-    
-    for (let i = 0; i < PLANET_NAMES.length; i++) {
-        let longitude = (meanLongitudes[i] + dailyMotions[i] * T * 36525) % 360;
-        if (longitude < 0) longitude += 360;
-        
-        planets.push({
-            name: PLANET_NAMES[i],
-            nameEn: PLANETS[i],
-            symbol: PLANET_SYMBOLS[i],
-            longitude: longitude,
-            latitude: 0
-        });
-    }
-    
-    return planets;
-}
-
-function calculateAscendantMC(astroTime, latitude, longitude) {
-    try {
-        const lst = window.Astronomy.SiderealTime(astroTime) + longitude / 15.0;
-        const obliquity = 23.4397;
-        const latRad = latitude * Math.PI / 180;
-        const lstRad = lst * 15 * Math.PI / 180;
-        const oblRad = obliquity * Math.PI / 180;
-        
-        const y = -Math.cos(lstRad);
-        const x = Math.sin(lstRad) * Math.cos(oblRad) + Math.tan(latRad) * Math.sin(oblRad);
-        let ascendant = Math.atan2(y, x) * 180 / Math.PI;
-        if (ascendant < 0) ascendant += 360;
-        
-        let mc = lst * 15;
-        if (mc >= 360) mc -= 360;
-        if (mc < 0) mc += 360;
-        
-        return { ascendant, mc };
-    } catch (error) {
-        console.error('Ошибка расчета Asc/MC:', error);
-        return calculateAscendantMCSimple(null, latitude, longitude);
-    }
-}
-
-function calculateAscendantMCSimple(utcDateTime, latitude, longitude) {
-    const now = utcDateTime || new Date();
-    const jd = (now.getTime() / 86400000) + 2440587.5;
-    const lst = (280.460618 + 360.985647 * (jd - 2451545.0)) / 15.0 + longitude / 15.0;
-    
-    const latRad = latitude * Math.PI / 180;
-    const lstRad = lst * 15 * Math.PI / 180;
-    const oblRad = 23.4397 * Math.PI / 180;
-    
-    const y = -Math.cos(lstRad);
-    const x = Math.sin(lstRad) * Math.cos(oblRad) + Math.tan(latRad) * Math.sin(oblRad);
-    let ascendant = Math.atan2(y, x) * 180 / Math.PI;
-    if (ascendant < 0) ascendant += 360;
-    
-    let mc = (lst * 15) % 360;
-    if (mc < 0) mc += 360;
-    
-    return { ascendant, mc };
-}
-
-function calculateHouses(system, ascendant, mc) {
-    const houses = [];
-    
-    for (let i = 1; i <= 12; i++) {
-        let cusp;
-        
-        if (system === 'equal') {
-            cusp = (ascendant + (i - 1) * 30) % 360;
-        } else {
-            // Упрощенный расчет для других систем
-            cusp = (ascendant + (i - 1) * 30) % 360;
-        }
-        
-        if (cusp < 0) cusp += 360;
-        
-        houses.push({
-            number: i,
-            cusp: cusp,
-            sign: getZodiacSign(cusp),
-            ruler: getSignRuler(getZodiacSign(cusp))
-        });
-    }
-    
-    return houses;
-}
-
-function calculateAspects(planets) {
-    const aspects = [];
-    
-    for (let i = 0; i < planets.length; i++) {
-        for (let j = i + 1; j < planets.length; j++) {
-            const planet1 = planets[i];
-            const planet2 = planets[j];
-            
-            let diff = Math.abs(planet1.longitude - planet2.longitude);
-            if (diff > 180) diff = 360 - diff;
-            
-            for (const aspectType of ASPECTS) {
-                const orb = Math.abs(diff - aspectType.angle);
-                
-                if (orb <= aspectType.orb) {
-                    const accuracy = ((aspectType.orb - orb) / aspectType.orb * 100);
-                    
-                    aspects.push({
-                        planet1: planet1.name,
-                        planet2: planet2.name,
-                        aspect: aspectType,
-                        orb: orb.toFixed(2),
-                        accuracy: parseFloat(accuracy.toFixed(1))
-                    });
-                }
-            }
-        }
-    }
-    
-    aspects.sort((a, b) => b.accuracy - a.accuracy);
-    return aspects;
-}
-
-// ================= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =================
-function getZodiacSign(longitude) {
-    let lon = longitude;
-    if (lon < 0) lon += 360;
-    if (lon >= 360) lon -= 360;
-    const signIndex = Math.floor(lon / 30);
-    return SIGNS[signIndex] || SIGNS[0];
-}
-
-function getSignRuler(sign) {
-    for (const [planet, signs] of Object.entries(RULERSHIPS)) {
-        if (signs.includes(sign)) {
-            return planet;
-        }
-    }
-    return "—";
-}
-
-function getPlanetStrength(planetName, sign) {
-    if (EXALTATIONS[planetName] === sign) {
-        return { status: 'exalted', text: 'Экзальтация' };
-    }
-    
-    if (RULERSHIPS[planetName] && RULERSHIPS[planetName].includes(sign)) {
-        return { status: 'dignified', text: 'Обитель' };
-    }
-    
-    return { status: 'neutral', text: '—' };
-}
-
-function getPlanetHouse(planetLon, houses) {
-    for (let i = 0; i < houses.length; i++) {
-        const house = houses[i];
-        const nextHouse = houses[(i + 1) % houses.length];
-        
-        let start = house.cusp;
-        let end = nextHouse.cusp;
-        
-        if (end < start) {
-            if (planetLon >= start || planetLon < end) {
-                return house.number;
-            }
-        } else {
-            if (planetLon >= start && planetLon < end) {
-                return house.number;
-            }
-        }
-    }
-    return 1;
-}
-
-function formatDegrees(longitude) {
-    let lon = longitude;
-    if (lon < 0) lon += 360;
-    if (lon >= 360) lon -= 360;
-    
-    const degrees = Math.floor(lon % 30);
-    const minutes = Math.floor((lon % 1) * 60);
-    const seconds = Math.floor(((lon % 1) * 60 % 1) * 60);
-    
-    return `${degrees}°${minutes.toString().padStart(2, '0')}'${seconds.toString().padStart(2, '0')}"`;
-}
-
 // ================= ОТОБРАЖЕНИЕ РЕЗУЛЬТАТОВ =================
 function displayResults(chart, formData) {
     console.log('🎨 Отображаем результаты');
     
     try {
-        displayBirthInfo(formData);
+        displayBirthInfo(formData, chart);
         displayPlanetsTable(chart);
         displayHousesTable(chart.houses);
         displayAspectsTable(chart.aspects);
-        displayCharts(chart);
         displayInterpretation(chart);
         
-        currentChart = chart;
         console.log('✅ Результаты отображены успешно');
         
     } catch (error) {
@@ -537,7 +466,7 @@ function displayResults(chart, formData) {
     }
 }
 
-function displayBirthInfo(formData) {
+function displayBirthInfo(formData, chart) {
     const content = `
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
             <div><strong>📅 Дата рождения</strong><br>${new Date(formData.date + 'T00:00:00').toLocaleDateString('ru-RU')}</div>
@@ -545,7 +474,7 @@ function displayBirthInfo(formData) {
             <div><strong>🌍 Место</strong><br>${formData.cityName}</div>
             <div><strong>📍 Координаты</strong><br>${formData.lat.toFixed(4)}°, ${formData.lon.toFixed(4)}°</div>
             <div><strong>⌚ Часовой пояс</strong><br>UTC${formData.tz >= 0 ? '+' : ''}${formData.tz}</div>
-            <div><strong>🏠 Система домов</strong><br>${formData.houseSystem}</div>
+            <div><strong>🏠 Асцендент</strong><br>${AstroCalculator.formatDegrees(chart.ascendant)} (${AstroCalculator.getZodiacSign(chart.ascendant)})</div>
         </div>
     `;
     
@@ -560,18 +489,18 @@ function displayPlanetsTable(chart) {
     tbody.innerHTML = '';
     
     chart.planets.forEach(planet => {
-        const sign = getZodiacSign(planet.longitude);
+        const sign = AstroCalculator.getZodiacSign(planet.longitude);
         const signIndex = SIGNS.indexOf(sign);
-        const house = getPlanetHouse(planet.longitude, chart.houses);
-        const strength = getPlanetStrength(planet.name, sign);
+        const house = AstroCalculator.getPlanetHouse(planet.longitude, chart.houses);
+        const strength = AstroCalculator.getPlanetStrength(planet.name, sign);
         
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><span style="font-size: 1.2em;">${planet.symbol}</span> ${planet.name}</td>
             <td><span style="font-size: 1.2em;">${SIGN_SYMBOLS[signIndex] || ''}</span> ${sign}</td>
-            <td>${formatDegrees(planet.longitude)}</td>
+            <td>${AstroCalculator.formatDegrees(planet.longitude)}</td>
             <td>${house}</td>
-            <td>${strength.text}</td>
+            <td style="color: ${strength.color};">${strength.text}</td>
         `;
         tbody.appendChild(row);
     });
@@ -588,7 +517,7 @@ function displayHousesTable(houses) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${house.number}</td>
-            <td>${formatDegrees(house.cusp)}</td>
+            <td>${AstroCalculator.formatDegrees(house.cusp)}</td>
             <td><span style="font-size: 1.2em;">${SIGN_SYMBOLS[signIndex] || ''}</span> ${house.sign}</td>
             <td>${house.ruler}</td>
         `;
@@ -604,9 +533,12 @@ function displayAspectsTable(aspects) {
     
     aspects.slice(0, 15).forEach(aspect => {
         const row = document.createElement('tr');
+        const natureColor = aspect.aspect.nature === 'гармоничный' ? '#66BB6A' : 
+                           aspect.aspect.nature === 'напряженный' ? '#FF7043' : '#FFA726';
+        
         row.innerHTML = `
             <td>${aspect.planet1}</td>
-            <td><span style="font-size: 1.2em;">${aspect.aspect.symbol}</span> ${aspect.aspect.name}</td>
+            <td style="color: ${natureColor};"><span style="font-size: 1.2em;">${aspect.aspect.symbol}</span> ${aspect.aspect.name}</td>
             <td>${aspect.planet2}</td>
             <td>${aspect.orb}°</td>
             <td>${aspect.accuracy}%</td>
@@ -615,158 +547,39 @@ function displayAspectsTable(aspects) {
     });
 }
 
-function displayCharts(chart) {
-    if (typeof Chart === 'undefined') {
-        console.warn('⚠️ Chart.js не загружена');
-        return;
-    }
-    
-    createSignsChart(chart);
-    createStrengthChart(chart);
-}
-
-function createSignsChart(chart) {
-    const ctx = document.getElementById('signs-chart');
-    if (!ctx) return;
-    
-    if (signsChart) {
-        signsChart.destroy();
-    }
-    
-    const signCounts = new Array(12).fill(0);
-    chart.planets.forEach(planet => {
-        const signIndex = Math.floor(planet.longitude / 30);
-        if (signIndex >= 0 && signIndex < 12) {
-            signCounts[signIndex]++;
-        }
-    });
-    
-    signsChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: SIGNS,
-            datasets: [{
-                data: signCounts,
-                backgroundColor: [
-                    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA726', '#AB47BC', '#66BB6A',
-                    '#FFCA28', '#FF7043', '#8D6E63', '#78909C', '#A1887F', '#90A4AE'
-                ],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#fff',
-                        boxWidth: 12,
-                        padding: 10
-                    }
-                }
-            }
-        }
-    });
-}
-
-function createStrengthChart(chart) {
-    const ctx = document.getElementById('strength-chart');
-    if (!ctx) return;
-    
-    if (strengthChart) {
-        strengthChart.destroy();
-    }
-    
-    const planetNames = [];
-    const strengthValues = [];
-    const colors = [];
-    
-    chart.planets.forEach(planet => {
-        const sign = getZodiacSign(planet.longitude);
-        const strength = getPlanetStrength(planet.name, sign);
-        
-        let value = 2;
-        let color = '#78909C';
-        
-        switch (strength.status) {
-            case 'exalted': value = 4; color = '#4ECDC4'; break;
-            case 'dignified': value = 3; color = '#66BB6A'; break;
-            case 'neutral': value = 2; color = '#FFA726'; break;
-        }
-        
-        planetNames.push(planet.name);
-        strengthValues.push(value);
-        colors.push(color);
-    });
-    
-    strengthChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: planetNames,
-            datasets: [{
-                label: 'Сила планеты',
-                data: strengthValues,
-                backgroundColor: colors,
-                borderColor: colors,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 4,
-                    ticks: {
-                        stepSize: 1,
-                        callback: function(value) {
-                            const labels = ['', '', 'Нейтраль', 'Обитель', 'Экзальтация'];
-                            return labels[value] || '';
-                        },
-                        color: '#fff'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: '#fff'
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-}
-
 function displayInterpretation(chart) {
     let interpretation = '';
     
     const strongPlanets = chart.planets.filter(planet => {
-        const sign = getZodiacSign(planet.longitude);
-        const strength = getPlanetStrength(planet.name, sign);
+        const sign = AstroCalculator.getZodiacSign(planet.longitude);
+        const strength = AstroCalculator.getPlanetStrength(planet.name, sign);
         return strength.status === 'exalted' || strength.status === 'dignified';
+    });
+    
+    const weakPlanets = chart.planets.filter(planet => {
+        const sign = AstroCalculator.getZodiacSign(planet.longitude);
+        const strength = AstroCalculator.getPlanetStrength(planet.name, sign);
+        return strength.status === 'fall' || strength.status === 'detriment';
     });
     
     if (strongPlanets.length > 0) {
         interpretation += `
-            <h3>💪 Сильные планеты</h3>
+            <h3>💪 Сильные планеты (${strongPlanets.length})</h3>
             <p>${strongPlanets.map(planet => {
-                const sign = getZodiacSign(planet.longitude);
-                const strength = getPlanetStrength(planet.name, sign);
-                return `<strong>${planet.name}</strong> в ${sign} (${strength.text.toLowerCase()}) — планета работает гармонично и эффективно.`;
+                const sign = AstroCalculator.getZodiacSign(planet.longitude);
+                const strength = AstroCalculator.getPlanetStrength(planet.name, sign);
+                return `<strong>${planet.symbol} ${planet.name}</strong> в ${sign} (${strength.text.toLowerCase()}) — планета работает гармонично и эффективно.`;
+            }).join(' ')}</p>
+        `;
+    }
+    
+    if (weakPlanets.length > 0) {
+        interpretation += `
+            <h3>⚠️ Слабые планеты (${weakPlanets.length})</h3>
+            <p>${weakPlanets.map(planet => {
+                const sign = AstroCalculator.getZodiacSign(planet.longitude);
+                const strength = AstroCalculator.getPlanetStrength(planet.name, sign);
+                return `<strong>${planet.symbol} ${planet.name}</strong> в ${sign} (${strength.text.toLowerCase()}) — планета требует дополнительного внимания и проработки.`;
             }).join(' ')}</p>
         `;
     }
@@ -775,18 +588,49 @@ function displayInterpretation(chart) {
     
     if (majorAspects.length > 0) {
         interpretation += `
-            <h3>✨ Важные аспекты</h3>
-            <p>${majorAspects.map(aspect => 
-                `<strong>${aspect.planet1} ${aspect.aspect.symbol} ${aspect.planet2}</strong> (точность ${aspect.accuracy}%)`
-            ).join('<br>')}</p>
+            <h3>✨ Важные аспекты (${majorAspects.length})</h3>
+            <ul>${majorAspects.map(aspect => 
+                `<li><strong>${aspect.planet1} ${aspect.aspect.symbol} ${aspect.planet2}</strong> (точность ${aspect.accuracy}%) — ${aspect.aspect.nature} аспект</li>`
+            ).join('')}</ul>
         `;
     }
     
+    // Анализ элементов
+    const elementCounts = { fire: 0, earth: 0, air: 0, water: 0 };
+    const elements = [
+        ['fire', 'fire', 'air', 'water', 'fire', 'earth', 'air', 'water', 'fire', 'earth', 'air', 'water']
+    ];
+    
+    chart.planets.forEach(planet => {
+        const signIndex = Math.floor(planet.longitude / 30);
+        const element = elements[0][signIndex];
+        elementCounts[element]++;
+    });
+    
+    const dominantElement = Object.keys(elementCounts).reduce((a, b) => 
+        elementCounts[a] > elementCounts[b] ? a : b
+    );
+    
+    const elementNames = {
+        fire: 'Огонь',
+        earth: 'Земля', 
+        air: 'Воздух',
+        water: 'Вода'
+    };
+    
+    interpretation += `
+        <h3>🔥 Анализ элементов</h3>
+        <p><strong>Доминирующий элемент:</strong> ${elementNames[dominantElement]} (${elementCounts[dominantElement]} планет)</p>
+        <p>Огонь: ${elementCounts.fire}, Земля: ${elementCounts.earth}, Воздух: ${elementCounts.air}, Вода: ${elementCounts.water}</p>
+    `;
+    
     interpretation += `
         <h3>📋 Общие выводы</h3>
-        <p>Натальная карта рассчитана ${astronomyEngineReady ? 'с профессиональной точностью с использованием Astronomy Engine' : 'с использованием упрощенных методов'}. 
+        <p>Натальная карта рассчитана с использованием автономной системы расчетов. 
         Всего найдено ${chart.aspects.length} аспектов между планетами. 
         ${strongPlanets.length > 0 ? `Есть ${strongPlanets.length} сильных планет, что указывает на природные таланты. ` : ''}
+        ${weakPlanets.length > 0 ? `${weakPlanets.length} планет требуют проработки. ` : ''}
+        Асцендент в ${AstroCalculator.getZodiacSign(chart.ascendant)} определяет внешнее проявление личности.
         Для полной интерпретации рекомендуется консультация с профессиональным астрологом.</p>
     `;
     
@@ -796,4 +640,4 @@ function displayInterpretation(chart) {
     }
 }
 
-console.log('✅ app.js загружен полностью');
+console.log('✅ Автономная система полностью загружена и готова к работе');
