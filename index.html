@@ -131,13 +131,6 @@
             background: rgba(255,255,255,0.05);
         }
         
-        canvas {
-            max-width: 100%;
-            height: 350px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-        
         .results-section {
             display: grid;
             gap: 20px;
@@ -155,32 +148,6 @@
             font-size: 1.3rem;
         }
         
-        .chart-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        
-        @media (min-width: 768px) {
-            .chart-row {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        
-        .chart-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
-        }
-        
-        .error {
-            background: rgba(244, 67, 54, 0.9);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
         .success {
             background: rgba(76, 175, 80, 0.9);
             color: white;
@@ -189,27 +156,12 @@
             margin-bottom: 20px;
         }
     </style>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Заглушки для CommonJS -->
-    <script>
-        window.exports = {};
-        window.module = { exports: {} };
-    </script>
-    
-    <!-- Astronomy Engine - профессиональная браузерная версия -->
-    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"></script>
-    
-    <!-- Основной скрипт -->
-    <script src="app.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🌟 Профессиональный Астрологический Калькулятор</h1>
-            <p class="subtitle">Точность ±1′ дуги • VSOP-87 • Профессиональные эфемериды</p>
+            <p class="subtitle">Точные расчеты • Автономная система • Работает без интернета</p>
         </header>
 
         <div id="status"></div>
@@ -331,22 +283,13 @@
                 </table>
             </div>
             
-            <div class="chart-row">
-                <div class="chart-card">
-                    <h3>📊 Распределение по знакам</h3>
-                    <canvas id="signs-chart" height="350"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3>💪 Сила планет</h3>
-                    <canvas id="strength-chart" height="350"></canvas>
-                </div>
-            </div>
-            
             <div class="card">
                 <h2>🔮 Интерпретация</h2>
                 <div id="interpretation-content"></div>
             </div>
         </section>
     </div>
+    
+    <script src="app.js"></script>
 </body>
 </html>
