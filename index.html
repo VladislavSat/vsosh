@@ -1,390 +1,116 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профессиональный Астрологический Калькулятор</title>
-    
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #fff;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.9);
-            color: #333;
-            font-size: 14px;
-        }
-        
-        input:focus, select:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.4);
-        }
-        
-        button {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-        }
-        
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .coordinates-section {
-            display: none;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        th {
-            background: rgba(255,255,255,0.1);
-            font-weight: 600;
-        }
-        
-        tr:hover {
-            background: rgba(255,255,255,0.05);
-        }
-        
-        .results-section {
-            display: grid;
-            gap: 20px;
-        }
-        
-        .results-section > div {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
-        }
-        
-        .results-section h2, .results-section h3 {
-            margin-bottom: 15px;
-            color: #fff;
-            font-size: 1.3rem;
-        }
-        
-        .success {
-            background: rgba(76, 175, 80, 0.9);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .error {
-            background: rgba(244, 67, 54, 0.9);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .warning {
-            background: rgba(255, 152, 0, 0.9);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .loading {
-            background: rgba(33, 150, 243, 0.9);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-    </style>
-    
-    <!-- Заглушки для CommonJS -->
-    <script>
-        window.exports = {};
-        window.module = { exports: {} };
-    </script>
-    
-    <!-- Динамическая загрузка Astronomy Engine -->
-    <script>
-        console.log('🔄 Начинаем загрузку Astronomy Engine...');
-        
-        // Список URL для попытки загрузки
-        const ASTRONOMY_URLS = [
-            './astronomy.browser.min.js', // Локальный файл
-            'https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js',
-            'https://unpkg.com/astronomy-engine/astronomy.browser.min.js',
-            'https://raw.githubusercontent.com/cosinekitty/astronomy/master/js/astronomy.browser.min.js'
-        ];
-        
-        let currentUrlIndex = 0;
-        
-        function tryLoadAstronomy() {
-            if (currentUrlIndex >= ASTRONOMY_URLS.length) {
-                console.error('❌ Все попытки загрузки Astronomy Engine провалились');
-                window.astronomyLoadFailed = true;
-                return;
-            }
-            
-            const url = ASTRONOMY_URLS[currentUrlIndex];
-            console.log(`🔄 Попытка ${currentUrlIndex + 1}: ${url}`);
-            
-            const script = document.createElement('script');
-            script.src = url;
-            
-            script.onload = function() {
-                console.log(`✅ Astronomy Engine загружена с: ${url}`);
-                window.astronomyLoaded = true;
-                
-                // Проверяем что библиотека действительно работает
-                setTimeout(() => {
-                    if (typeof window.Astronomy !== 'undefined' && window.Astronomy.Body) {
-                        console.log('🔬 Astronomy Engine готова к использованию');
-                        window.dispatchEvent(new CustomEvent('astronomyReady'));
-                    } else {
-                        console.warn('⚠️ Astronomy Engine загружена, но не инициализирована');
-                        currentUrlIndex++;
-                        tryLoadAstronomy();
-                    }
-                }, 100);
-            };
-            
-            script.onerror = function() {
-                console.warn(`❌ Не удалось загрузить с: ${url}`);
-                currentUrlIndex++;
-                tryLoadAstronomy();
-            };
-            
-            document.head.appendChild(script);
-        }
-        
-        // Начинаем загрузку
-        tryLoadAstronomy();
-        
-        // Таймаут на случай полного провала
-        setTimeout(() => {
-            if (!window.astronomyLoaded && !window.astronomyLoadFailed) {
-                console.error('⏰ Таймаут загрузки Astronomy Engine');
-                window.astronomyLoadFailed = true;
-            }
-        }, 10000);
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Профессиональный Астрокалькулятор</title>
+
+  <!-- Минимальные стили -->
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Tahoma}
+    body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;min-height:100vh;padding:24px}
+    h1{font-size:2rem;text-align:center;margin-bottom:20px}
+    .card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:20px;margin-bottom:20px}
+    input,select,button{width:100%;padding:10px;border:none;border-radius:6px;margin-top:6px}
+    button{background:#4e8cff;color:#fff;font-weight:600;cursor:pointer;margin-top:12px}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,.2)}
+    tr:nth-child(even){background:rgba(255,255,255,.05)}
+    .hidden{display:none}
+    .status{padding:12px;border-radius:6px;margin-bottom:16px}
+    .success{background:#388e3c}
+    .error{background:#d32f2f}
+    .warn{background:#f57c00}
+    .load{background:#1976d2}
+  </style>
+
+  <!-- Заглушка CommonJS -->
+  <script>window.exports={};window.module={exports:{}};</script>
+
+  <!-- ДИНАМИЧЕСКИЙ ЛОАДЕР Astronomy Engine -->
+  <script>
+    const urls=[
+      "./astronomy.browser.min.js",
+      "https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js",
+      "https://unpkg.com/astronomy-engine/astronomy.browser.min.js",
+      "https://raw.githubusercontent.com/cosinekitty/astronomy/master/js/astronomy.browser.min.js"
+    ];
+    let i=0;
+    function loadAstro(){
+      if(i>=urls.length){
+        window.dispatchEvent(new Event("astronomyLoadFailed"));return;
+      }
+      const s=document.createElement("script");
+      s.src=urls[i++];
+      s.onload=()=>setTimeout(()=>{
+        if(window.Astronomy&&window.Astronomy.Body){
+          window.dispatchEvent(new Event("astronomyReady"));
+        }else loadAstro();
+      },100);
+      s.onerror=loadAstro;
+      document.head.appendChild(s);
+    }
+    loadAstro();
+  </script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌟 Профессиональный Астрологический Калькулятор</h1>
-            <p class="subtitle">Автоматическая загрузка библиотеки • VSOP-87 • Профессиональные расчеты</p>
-        </header>
 
-        <div id="status"></div>
+  <h1>🌟 Профессиональный Астрокалькулятор</h1>
+  <div id="status"></div>
 
-        <section class="input-section">
-            <div class="card">
-                <h2>📅 Данные рождения</h2>
-                <form id="birth-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="birth-date">Дата рождения</label>
-                            <input type="date" id="birth-date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="birth-time">Время рождения</label>
-                            <input type="time" id="birth-time" step="60" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="city">Город</label>
-                            <select id="city">
-                                <option value="">Выберите город</option>
-                                <option value="moscow">🏛️ Москва</option>
-                                <option value="spb">🏰 Санкт-Петербург</option>
-                                <option value="novosibirsk">🏭 Новосибирск</option>
-                                <option value="ekaterinburg">⛰️ Екатеринбург</option>
-                                <option value="london">🌉 Лондон</option>
-                                <option value="newyork">🗽 Нью-Йорк</option>
-                                <option value="paris">🗼 Париж</option>
-                                <option value="tokyo">🗾 Токио</option>
-                                <option value="custom">✏️ Ручной ввод</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="house-system">Система домов</label>
-                            <select id="house-system">
-                                <option value="placidus">Placidus</option>
-                                <option value="koch">Koch</option>
-                                <option value="equal">Equal House</option>
-                                <option value="whole">Whole Sign</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="coordinates-section" id="coordinates-section">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="latitude">Широта</label>
-                                <input type="number" id="latitude" step="0.0001" min="-90" max="90" placeholder="55.7558">
-                            </div>
-                            <div class="form-group">
-                                <label for="longitude">Долгота</label>
-                                <input type="number" id="longitude" step="0.0001" min="-180" max="180" placeholder="37.6176">
-                            </div>
-                            <div class="form-group">
-                                <label for="timezone">Часовой пояс (UTC)</label>
-                                <input type="number" id="timezone" step="0.5" min="-12" max="14" placeholder="3">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button type="submit">🔮 Рассчитать натальную карту</button>
-                </form>
-            </div>
-        </section>
-
-        <section class="results-section hidden" id="results-section">
-            <div class="card">
-                <h2>ℹ️ Информация о рождении</h2>
-                <div id="birth-info-content"></div>
-            </div>
-            
-            <div class="card">
-                <h2>🪐 Позиции планет</h2>
-                <table id="planets-table">
-                    <thead>
-                        <tr>
-                            <th>Планета</th>
-                            <th>Знак</th>
-                            <th>Позиция</th>
-                            <th>Дом</th>
-                            <th>Статус</th>
-                        </tr>
-                    </thead>
-                    <tbody id="planets-tbody"></tbody>
-                </table>
-            </div>
-            
-            <div class="card">
-                <h2>🏠 Астрологические дома</h2>
-                <table id="houses-table">
-                    <thead>
-                        <tr>
-                            <th>Дом</th>
-                            <th>Куспид</th>
-                            <th>Знак</th>
-                            <th>Правитель</th>
-                        </tr>
-                    </thead>
-                    <tbody id="houses-tbody"></tbody>
-                </table>
-            </div>
-            
-            <div class="card">
-                <h2>✨ Аспекты</h2>
-                <table id="aspects-table">
-                    <thead>
-                        <tr>
-                            <th>Планета 1</th>
-                            <th>Аспект</th>
-                            <th>Планета 2</th>
-                            <th>Орб</th>
-                            <th>Точность</th>
-                        </tr>
-                    </thead>
-                    <tbody id="aspects-tbody"></tbody>
-                </table>
-            </div>
-            
-            <div class="card">
-                <h2>🔮 Интерпретация</h2>
-                <div id="interpretation-content"></div>
-            </div>
-        </section>
+  <!-- Форма ввода -->
+  <form id="form" class="card">
+    <div class="row">
+      <div style="flex:1 1 140px">
+        <label>Дата<input type="date" id="date" required></label>
+      </div>
+      <div style="flex:1 1 140px">
+        <label>Время<input type="time" id="time" step="60" required></label>
+      </div>
     </div>
-    
-    <script src="app.js"></script>
+
+    <div class="row">
+      <div style="flex:1 1 160px">
+        <label>Город
+          <select id="city">
+            <option value="moscow">Москва</option>
+            <option value="spb">С-Петербург</option>
+            <option value="tokyo">Токио</option>
+            <option value="london">Лондон</option>
+            <option value="custom">Ручной ввод…</option>
+          </select>
+        </label>
+      </div>
+      <div style="flex:1 1 160px">
+        <label>Система домов
+          <select id="housesys">
+            <option value="placidus">Placidus</option>
+            <option value="equal">Equal</option>
+            <option value="whole">Whole</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- координаты ручного ввода -->
+    <div id="coords" class="row hidden">
+      <div style="flex:1 1 100px"><label>Lat<input id="lat" type="number" step="0.0001"></label></div>
+      <div style="flex:1 1 100px"><label>Lon<input id="lon" type="number" step="0.0001"></label></div>
+      <div style="flex:1 1 100px"><label>TZ<input id="tz" type="number" step="0.5"></label></div>
+    </div>
+
+    <button type="submit">🔮 Рассчитать</button>
+  </form>
+
+  <!-- Результаты -->
+  <section id="out" class="hidden">
+    <div class="card"><h2>Информация</h2><div id="info"></div></div>
+    <div class="card"><h2>Планеты</h2><table id="planets"></table></div>
+  </section>
+
+  <!-- Основной скрипт -->
+  <script src="app.js"></script>
 </body>
 </html>
