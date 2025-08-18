@@ -163,6 +163,22 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        
+        .warning {
+            background: rgba(255, 152, 0, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            background: rgba(33, 150, 243, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
     </style>
     
     <!-- Заглушки для CommonJS -->
@@ -171,17 +187,76 @@
         window.module = { exports: {} };
     </script>
     
-    <!-- ЛОКАЛЬНЫЙ файл Astronomy Engine -->
-    <script src="astronomy.browser.min.js"></script>
-    
-    <!-- Основной скрипт -->
-    <script src="app.js"></script>
+    <!-- Динамическая загрузка Astronomy Engine -->
+    <script>
+        console.log('🔄 Начинаем загрузку Astronomy Engine...');
+        
+        // Список URL для попытки загрузки
+        const ASTRONOMY_URLS = [
+            './astronomy.browser.min.js', // Локальный файл
+            'https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js',
+            'https://unpkg.com/astronomy-engine/astronomy.browser.min.js',
+            'https://raw.githubusercontent.com/cosinekitty/astronomy/master/js/astronomy.browser.min.js'
+        ];
+        
+        let currentUrlIndex = 0;
+        
+        function tryLoadAstronomy() {
+            if (currentUrlIndex >= ASTRONOMY_URLS.length) {
+                console.error('❌ Все попытки загрузки Astronomy Engine провалились');
+                window.astronomyLoadFailed = true;
+                return;
+            }
+            
+            const url = ASTRONOMY_URLS[currentUrlIndex];
+            console.log(`🔄 Попытка ${currentUrlIndex + 1}: ${url}`);
+            
+            const script = document.createElement('script');
+            script.src = url;
+            
+            script.onload = function() {
+                console.log(`✅ Astronomy Engine загружена с: ${url}`);
+                window.astronomyLoaded = true;
+                
+                // Проверяем что библиотека действительно работает
+                setTimeout(() => {
+                    if (typeof window.Astronomy !== 'undefined' && window.Astronomy.Body) {
+                        console.log('🔬 Astronomy Engine готова к использованию');
+                        window.dispatchEvent(new CustomEvent('astronomyReady'));
+                    } else {
+                        console.warn('⚠️ Astronomy Engine загружена, но не инициализирована');
+                        currentUrlIndex++;
+                        tryLoadAstronomy();
+                    }
+                }, 100);
+            };
+            
+            script.onerror = function() {
+                console.warn(`❌ Не удалось загрузить с: ${url}`);
+                currentUrlIndex++;
+                tryLoadAstronomy();
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Начинаем загрузку
+        tryLoadAstronomy();
+        
+        // Таймаут на случай полного провала
+        setTimeout(() => {
+            if (!window.astronomyLoaded && !window.astronomyLoadFailed) {
+                console.error('⏰ Таймаут загрузки Astronomy Engine');
+                window.astronomyLoadFailed = true;
+            }
+        }, 10000);
+    </script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🌟 Профессиональный Астрологический Калькулятор</h1>
-            <p class="subtitle">Профессиональная точность • VSOP-87 • Локальная библиотека</p>
+            <p class="subtitle">Автоматическая загрузка библиотеки • VSOP-87 • Профессиональные расчеты</p>
         </header>
 
         <div id="status"></div>
@@ -309,5 +384,7 @@
             </div>
         </section>
     </div>
+    
+    <script src="app.js"></script>
 </body>
 </html>
