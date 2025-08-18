@@ -1,91 +1,75 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Профессиональный Астрокалькулятор</title>
-
-  <!-- Минимальные стили -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Проф-Астрокалькулятор</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Tahoma}
-    body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;min-height:100vh;padding:24px}
-    h1{font-size:2rem;text-align:center;margin-bottom:20px}
-    .card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:20px;margin-bottom:20px}
+    body{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;min-height:100vh;padding:24px}
+    h1{text-align:center;font-size:2rem;margin-bottom:24px}
+    .card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:20px;margin-bottom:24px}
+    .row{display:flex;gap:16px;flex-wrap:wrap}
     input,select,button{width:100%;padding:10px;border:none;border-radius:6px;margin-top:6px}
     button{background:#4e8cff;color:#fff;font-weight:600;cursor:pointer;margin-top:12px}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .row{display:flex;gap:16px;flex-wrap:wrap}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,.2)}
-    tr:nth-child(even){background:rgba(255,255,255,.05)}
     .hidden{display:none}
-    .status{padding:12px;border-radius:6px;margin-bottom:16px}
-    .success{background:#388e3c}
-    .error{background:#d32f2f}
-    .warn{background:#f57c00}
-    .load{background:#1976d2}
+    th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,.2)}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    tr:nth-child(even){background:rgba(255,255,255,.05)}
+    .stat{padding:12px;border-radius:6px;margin-bottom:16px}
+    .ok{background:#2e7d32}.warn{background:#f57c00}.err{background:#c62828}.load{background:#1565c0}
   </style>
 
-  <!-- Заглушка CommonJS -->
+  <!-- CommonJS заглушка -->
   <script>window.exports={};window.module={exports:{}};</script>
 
-  <!-- ДИНАМИЧЕСКИЙ ЛОАДЕР Astronomy Engine -->
+  <!-- Динамический загрузчик библиотеки -->
   <script>
-    const urls=[
-      "./astronomy.browser.min.js",
-      "https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js",
-      "https://unpkg.com/astronomy-engine/astronomy.browser.min.js",
-      "https://raw.githubusercontent.com/cosinekitty/astronomy/master/js/astronomy.browser.min.js"
+    const srcList=[
+      './astronomy.browser.min.js',
+      'https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js',
+      'https://unpkg.com/astronomy-engine/astronomy.browser.min.js'
     ];
-    let i=0;
-    function loadAstro(){
-      if(i>=urls.length){
-        window.dispatchEvent(new Event("astronomyLoadFailed"));return;
-      }
-      const s=document.createElement("script");
-      s.src=urls[i++];
-      s.onload=()=>setTimeout(()=>{
-        if(window.Astronomy&&window.Astronomy.Body){
-          window.dispatchEvent(new Event("astronomyReady"));
-        }else loadAstro();
-      },100);
-      s.onerror=loadAstro;
-      document.head.appendChild(s);
-    }
-    loadAstro();
+    let pos=0;
+    (function load(){
+      if(pos>=srcList.length){window.dispatchEvent(new Event('astronomyLoadFailed'));return;}
+      const scr=document.createElement('script');scr.src=srcList[pos++];
+      scr.onload=()=>setTimeout(()=>window.Astronomy&&window.Astronomy.Body
+                 ?window.dispatchEvent(new Event('astronomyReady'))
+                 :load(),100);
+      scr.onerror=load;document.head.append(scr);
+    })();
   </script>
 </head>
 <body>
+  <h1>🌟 Проф-Астрокалькулятор</h1>
+  <div id="stat" class="stat load">Загрузка библиотеки…</div>
 
-  <h1>🌟 Профессиональный Астрокалькулятор</h1>
-  <div id="status"></div>
-
-  <!-- Форма ввода -->
-  <form id="form" class="card">
+  <!-- Форма -->
+  <form id="frm" class="card">
     <div class="row">
       <div style="flex:1 1 140px">
-        <label>Дата<input type="date" id="date" required></label>
+        <label>Дата<input id="d" type="date" required></label>
       </div>
       <div style="flex:1 1 140px">
-        <label>Время<input type="time" id="time" step="60" required></label>
+        <label>Время<input id="t" type="time" step="60" required></label>
       </div>
     </div>
-
     <div class="row">
       <div style="flex:1 1 160px">
         <label>Город
           <select id="city">
             <option value="moscow">Москва</option>
             <option value="spb">С-Петербург</option>
-            <option value="tokyo">Токио</option>
             <option value="london">Лондон</option>
+            <option value="tokyo">Токио</option>
             <option value="custom">Ручной ввод…</option>
           </select>
         </label>
       </div>
       <div style="flex:1 1 160px">
         <label>Система домов
-          <select id="housesys">
+          <select id="hsys">
             <option value="placidus">Placidus</option>
             <option value="equal">Equal</option>
             <option value="whole">Whole</option>
@@ -93,24 +77,20 @@
         </label>
       </div>
     </div>
-
-    <!-- координаты ручного ввода -->
-    <div id="coords" class="row hidden">
+    <div id="coord" class="row hidden">
       <div style="flex:1 1 100px"><label>Lat<input id="lat" type="number" step="0.0001"></label></div>
       <div style="flex:1 1 100px"><label>Lon<input id="lon" type="number" step="0.0001"></label></div>
-      <div style="flex:1 1 100px"><label>TZ<input id="tz" type="number" step="0.5"></label></div>
+      <div style="flex:1 1 100px"><label>TZ<input id="tz"  type="number" step="0.5"></label></div>
     </div>
-
-    <button type="submit">🔮 Рассчитать</button>
+    <button>🔮 Рассчитать</button>
   </form>
 
   <!-- Результаты -->
-  <section id="out" class="hidden">
-    <div class="card"><h2>Информация</h2><div id="info"></div></div>
-    <div class="card"><h2>Планеты</h2><table id="planets"></table></div>
+  <section id="res" class="hidden">
+    <div class="card"><h3>Информация</h3><div id="info"></div></div>
+    <div class="card"><h3>Планеты</h3><table id="tbl"></table></div>
   </section>
 
-  <!-- Основной скрипт -->
   <script src="app.js"></script>
 </body>
 </html>
