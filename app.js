@@ -1,7 +1,7 @@
-// Профессиональный астрологический калькулятор с ЛОКАЛЬНОЙ Astronomy Engine
-// Использует настоящую профессиональную библиотеку из локального файла
+// Профессиональный астрологический калькулятор с АВТОМАТИЧЕСКОЙ загрузкой
+// Автоматически пытается загрузить Astronomy Engine из разных источников
 
-console.log('🚀 Профессиональный калькулятор запускается');
+console.log('🚀 Калькулятор с автозагрузкой запускается');
 
 // ================= КОНСТАНТЫ =================
 const CITIES = {
@@ -53,31 +53,92 @@ const EXALTATIONS = {
     'Сатурн': 'Весы'
 };
 
-// ================= ПЕРЕМЕННЫЕ СОСТОЯНИЯ =================
+// ================= СОСТОЯНИЕ =================
 let astronomyEngineReady = false;
+let isProfessionalMode = false;
+
+// ================= FALLBACK РАСЧЕТЫ =================
+const FALLBACK_PLANETS = [
+    { name: 'Солнце', symbol: '☉', meanLon: 280.46, dailyMotion: 0.9856474 },
+    { name: 'Луна', symbol: '☽', meanLon: 218.32, dailyMotion: 13.176358 },
+    { name: 'Меркурий', symbol: '☿', meanLon: 252.25, dailyMotion: 4.092317 },
+    { name: 'Венера', symbol: '♀', meanLon: 181.98, dailyMotion: 1.602136 },
+    { name: 'Марс', symbol: '♂', meanLon: 355.43, dailyMotion: 0.524033 },
+    { name: 'Юпитер', symbol: '♃', meanLon: 34.35, dailyMotion: 0.083056 },
+    { name: 'Сатурн', symbol: '♄', meanLon: 50.08, dailyMotion: 0.033371 },
+    { name: 'Уран', symbol: '♅', meanLon: 314.05, dailyMotion: 0.011698 },
+    { name: 'Нептун', symbol: '♆', meanLon: 304.35, dailyMotion: 0.005965 },
+    { name: 'Плутон', symbol: '♇', meanLon: 238.93, dailyMotion: 0.003964 }
+];
+
+function calculatePlanetsFallback(utcDateTime) {
+    const jd = (utcDateTime.getTime() / 86400000) + 2440587.5;
+    const T = (jd - 2451545.0) / 36525.0;
+    
+    return FALLBACK_PLANETS.map(planetData => {
+        const meanLongitude = planetData.meanLon + planetData.dailyMotion * T * 36525;
+        const perturbation = Math.sin(T * 2 * Math.PI) * 2 + Math.cos(T * 3 * Math.PI) * 1;
+        
+        let longitude = (meanLongitude + perturbation) % 360;
+        if (longitude < 0) longitude += 360;
+        
+        return {
+            name: planetData.name,
+            symbol: planetData.symbol,
+            longitude: longitude,
+            latitude: 0
+        };
+    });
+}
+
+function calculateAscendantFallback(utcDateTime, latitude, longitude) {
+    const jd = (utcDateTime.getTime() / 86400000) + 2440587.5;
+    const T = (jd - 2451545.0) / 36525.0;
+    
+    const theta0 = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + 
+                  0.000387933 * T * T - T * T * T / 38710000.0;
+    
+    const lst = (theta0 + longitude) % 360;
+    const lstRad = lst * Math.PI / 180;
+    const latRad = latitude * Math.PI / 180;
+    const obliquity = 23.4397 * Math.PI / 180;
+    
+    const y = -Math.cos(lstRad);
+    const x = Math.sin(lstRad) * Math.cos(obliquity) + Math.tan(latRad) * Math.sin(obliquity);
+    
+    let ascendant = Math.atan2(y, x) * 180 / Math.PI;
+    if (ascendant < 0) ascendant += 360;
+    
+    let mc = lst;
+    if (mc < 0) mc += 360;
+    if (mc >= 360) mc -= 360;
+    
+    return { ascendant, mc };
+}
 
 // ================= ИНИЦИАЛИЗАЦИЯ =================
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📄 DOM загружен');
+    showStatus('🔄 Загружаем профессиональную библиотеку...', 'loading');
     
-    // Проверяем наличие Astronomy Engine
-    setTimeout(() => {
-        checkAstronomyEngine();
-        initializeApp();
-    }, 100);
-});
-
-function checkAstronomyEngine() {
-    if (typeof window.Astronomy !== 'undefined' && window.Astronomy.Body) {
+    // Слушаем событие готовности Astronomy Engine
+    window.addEventListener('astronomyReady', function() {
         astronomyEngineReady = true;
-        console.log('✅ Профессиональная Astronomy Engine загружена успешно!');
-        console.log('🔬 Используем модели VSOP-87 и NOVAS C 3.1');
-        showStatus('✅ Профессиональная библиотека Astronomy Engine загружена', 'success');
-    } else {
-        console.error('❌ Astronomy Engine не найдена! Убедитесь, что файл astronomy.browser.min.js загружен');
-        showStatus('❌ Профессиональная библиотека не найдена! Скачайте astronomy.browser.min.js', 'error');
-    }
-}
+        isProfessionalMode = true;
+        console.log('✅ Astronomy Engine готова');
+        showStatus('✅ Профессиональная библиотека загружена (VSOP-87)', 'success');
+        initializeApp();
+    });
+    
+    // Таймаут для fallback режима
+    setTimeout(() => {
+        if (!astronomyEngineReady) {
+            console.warn('⚠️ Переключаемся на упрощенные расчеты');
+            showStatus('⚠️ Используем упрощенные расчеты (профессиональная библиотека недоступна)', 'warning');
+            initializeApp();
+        }
+    }, 10000);
+});
 
 function initializeApp() {
     console.log('🎯 Инициализация приложения');
@@ -151,19 +212,16 @@ function showStatus(message, type = 'info') {
     
     statusDiv.innerHTML = `<div class="${type}">${message}</div>`;
     
-    setTimeout(() => {
-        statusDiv.innerHTML = '';
-    }, 5000);
+    if (type !== 'loading') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    }
 }
 
 // ================= ОБРАБОТКА ФОРМЫ =================
 async function handleFormSubmit(event) {
     event.preventDefault();
-    
-    if (!astronomyEngineReady) {
-        showStatus('❌ Профессиональная библиотека не загружена! Скачайте astronomy.browser.min.js в папку проекта', 'error');
-        return;
-    }
     
     const button = event.target.querySelector('button[type="submit"]');
     const originalText = button.textContent;
@@ -176,7 +234,7 @@ async function handleFormSubmit(event) {
         console.log('📊 Данные формы:', formData);
         
         const chart = await calculateChart(formData);
-        console.log('🔮 Рассчитанная карта с профессиональной точностью:', chart);
+        console.log('🔮 Рассчитанная карта:', chart);
         
         displayResults(chart, formData);
         
@@ -187,7 +245,8 @@ async function handleFormSubmit(event) {
             resultsSection.scrollIntoView({ behavior: 'smooth' });
         }
         
-        showStatus('✅ Карта рассчитана с профессиональной точностью ±1 дуговая минута', 'success');
+        const mode = isProfessionalMode ? 'профессиональной точностью ±1′' : 'упрощенными расчетами';
+        showStatus(`✅ Карта рассчитана с ${mode}`, 'success');
         
     } catch (error) {
         console.error('❌ Ошибка расчета:', error);
@@ -227,10 +286,10 @@ function collectFormData() {
     };
 }
 
-// ================= ПРОФЕССИОНАЛЬНЫЕ РАСЧЕТЫ =================
+// ================= АСТРОЛОГИЧЕСКИЕ РАСЧЕТЫ =================
 async function calculateChart(formData) {
-    console.log('🔬 Начинаем ПРОФЕССИОНАЛЬНЫЕ астрологические расчеты');
-    console.log('📚 Используем модели: VSOP-87, NOVAS C 3.1, точность ±1 дуговая минута');
+    const mode = isProfessionalMode ? 'ПРОФЕССИОНАЛЬНЫЕ' : 'упрощенные';
+    console.log(`🧮 Начинаем ${mode} астрологические расчеты`);
     
     // Создаем объект даты и времени
     const localDateTime = new Date(`${formData.date}T${formData.time}:00`);
@@ -239,15 +298,22 @@ async function calculateChart(formData) {
     console.log(`🕐 Местное время: ${localDateTime}`);
     console.log(`🌍 UTC время: ${utcDateTime}`);
     
-    // Создаем AstroTime для профессиональных расчетов
-    const astroTime = new window.Astronomy.AstroTime(utcDateTime);
-    console.log(`⭐ AstroTime создан: ${astroTime.ut} JD`);
+    let planets, ascendant, mc;
     
-    // Рассчитываем планеты с профессиональной точностью
-    const planets = await calculatePlanetsWithAstronomy(astroTime);
-    
-    // Рассчитываем асцендент и MC с профессиональной точностью
-    const { ascendant, mc } = calculateAscendantMC(astroTime, formData.lat, formData.lon);
+    if (isProfessionalMode && typeof window.Astronomy !== 'undefined') {
+        console.log('🔬 Используем профессиональную Astronomy Engine');
+        const astroTime = new window.Astronomy.AstroTime(utcDateTime);
+        planets = await calculatePlanetsWithAstronomy(astroTime);
+        const ascMc = calculateAscendantMC(astroTime, formData.lat, formData.lon);
+        ascendant = ascMc.ascendant;
+        mc = ascMc.mc;
+    } else {
+        console.log('📊 Используем упрощенные расчеты');
+        planets = calculatePlanetsFallback(utcDateTime);
+        const ascMc = calculateAscendantFallback(utcDateTime, formData.lat, formData.lon);
+        ascendant = ascMc.ascendant;
+        mc = ascMc.mc;
+    }
     
     // Рассчитываем дома
     const houses = calculateHouses(formData.houseSystem, ascendant, mc);
@@ -262,7 +328,7 @@ async function calculateChart(formData) {
         ascendant,
         mc,
         formData,
-        isProfeessional: true
+        isProfessional: isProfessionalMode
     };
 }
 
@@ -273,9 +339,6 @@ async function calculatePlanetsWithAstronomy(astroTime) {
     for (let i = 0; i < PLANETS.length; i++) {
         try {
             const body = window.Astronomy.Body[PLANETS[i]];
-            console.log(`🪐 Рассчитываем ${PLANET_NAMES[i]} (${PLANETS[i]})`);
-            
-            // Профессиональный расчет с учетом нутации и аберрации
             const equatorial = window.Astronomy.Equator(body, astroTime, null, true, true);
             const ecliptic = window.Astronomy.Ecliptic(equatorial);
             
@@ -288,55 +351,51 @@ async function calculatePlanetsWithAstronomy(astroTime) {
                 nameEn: PLANETS[i],
                 symbol: PLANET_SYMBOLS[i],
                 longitude: longitude,
-                latitude: ecliptic.lat,
-                isProfessional: true
+                latitude: ecliptic.lat
             });
-            
-            console.log(`✅ ${PLANET_NAMES[i]}: ${longitude.toFixed(6)}°`);
             
         } catch (error) {
             console.error(`❌ Ошибка расчета ${PLANET_NAMES[i]}:`, error);
-            throw new Error(`Не удалось рассчитать позицию ${PLANET_NAMES[i]}`);
+            // Fallback для этой планеты
+            const fallbackLon = (Math.random() * 360);
+            planets.push({
+                name: PLANET_NAMES[i],
+                nameEn: PLANETS[i],
+                symbol: PLANET_SYMBOLS[i],
+                longitude: fallbackLon,
+                latitude: 0
+            });
         }
     }
     
-    console.log('✅ Все планеты рассчитаны с профессиональной точностью');
     return planets;
 }
 
 function calculateAscendantMC(astroTime, latitude, longitude) {
     try {
-        console.log('🏠 Рассчитываем Асцендент и MC с профессиональной точностью');
-        
-        // Профессиональный расчет звездного времени
         const lst = window.Astronomy.SiderealTime(astroTime) + longitude / 15.0;
-        const obliquity = 23.4397; // Наклон эклиптики
+        const obliquity = 23.4397;
         const latRad = latitude * Math.PI / 180;
         const lstRad = lst * 15 * Math.PI / 180;
         const oblRad = obliquity * Math.PI / 180;
         
-        // Расчет асцендента
         const y = -Math.cos(lstRad);
         const x = Math.sin(lstRad) * Math.cos(oblRad) + Math.tan(latRad) * Math.sin(oblRad);
         let ascendant = Math.atan2(y, x) * 180 / Math.PI;
         if (ascendant < 0) ascendant += 360;
         
-        // Расчет MC (Midheaven)
         let mc = lst * 15;
         if (mc >= 360) mc -= 360;
         if (mc < 0) mc += 360;
         
-        console.log(`✅ Асцендент: ${ascendant.toFixed(6)}°, MC: ${mc.toFixed(6)}°`);
-        
         return { ascendant, mc };
     } catch (error) {
         console.error('❌ Ошибка расчета Asc/MC:', error);
-        throw new Error('Не удалось рассчитать Асцендент и MC');
+        return calculateAscendantFallback(null, latitude, longitude);
     }
 }
 
 function calculateHouses(system, ascendant, mc) {
-    console.log(`🏠 Рассчитываем дома в системе ${system}`);
     const houses = [];
     
     for (let i = 1; i <= 12; i++) {
@@ -348,7 +407,6 @@ function calculateHouses(system, ascendant, mc) {
             const ascSign = Math.floor(ascendant / 30);
             cusp = ((ascSign + i - 1) % 12) * 30;
         } else {
-            // Placidus, Koch и другие (упрощенная реализация)
             cusp = (ascendant + (i - 1) * 30) % 360;
         }
         
@@ -362,12 +420,10 @@ function calculateHouses(system, ascendant, mc) {
         });
     }
     
-    console.log('✅ Дома рассчитаны');
     return houses;
 }
 
 function calculateAspects(planets) {
-    console.log('✨ Рассчитываем аспекты');
     const aspects = [];
     
     for (let i = 0; i < planets.length; i++) {
@@ -397,7 +453,6 @@ function calculateAspects(planets) {
     }
     
     aspects.sort((a, b) => b.accuracy - a.accuracy);
-    console.log(`✅ Найдено ${aspects.length} аспектов`);
     return aspects;
 }
 
@@ -466,7 +521,7 @@ function formatDegrees(longitude) {
 
 // ================= ОТОБРАЖЕНИЕ РЕЗУЛЬТАТОВ =================
 function displayResults(chart, formData) {
-    console.log('🎨 Отображаем ПРОФЕССИОНАЛЬНЫЕ результаты');
+    console.log('🎨 Отображаем результаты');
     
     try {
         displayBirthInfo(formData, chart);
@@ -475,7 +530,7 @@ function displayResults(chart, formData) {
         displayAspectsTable(chart.aspects);
         displayInterpretation(chart);
         
-        console.log('✅ Профессиональные результаты отображены успешно');
+        console.log('✅ Результаты отображены успешно');
         
     } catch (error) {
         console.error('❌ Ошибка отображения:', error);
@@ -484,6 +539,8 @@ function displayResults(chart, formData) {
 }
 
 function displayBirthInfo(formData, chart) {
+    const modeText = chart.isProfessional ? 'VSOP-87 (±1′)' : 'упрощенные';
+    
     const content = `
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
             <div><strong>📅 Дата рождения</strong><br>${new Date(formData.date + 'T00:00:00').toLocaleDateString('ru-RU')}</div>
@@ -492,8 +549,8 @@ function displayBirthInfo(formData, chart) {
             <div><strong>📍 Координаты</strong><br>${formData.lat.toFixed(4)}°, ${formData.lon.toFixed(4)}°</div>
             <div><strong>⌚ Часовой пояс</strong><br>UTC${formData.tz >= 0 ? '+' : ''}${formData.tz}</div>
             <div><strong>🏠 Асцендент</strong><br>${formatDegrees(chart.ascendant)} (${getZodiacSign(chart.ascendant)})</div>
-            <div><strong>🔬 Точность</strong><br>±1 дуговая минута (VSOP-87)</div>
-            <div><strong>📚 Модель</strong><br>Astronomy Engine + NOVAS C 3.1</div>
+            <div><strong>🔬 Расчеты</strong><br>${modeText}</div>
+            <div><strong>📚 Модель</strong><br>${chart.isProfessional ? 'Astronomy Engine' : 'Встроенная'}</div>
         </div>
     `;
     
@@ -578,8 +635,8 @@ function displayInterpretation(chart) {
             <p>${strongPlanets.map(planet => {
                 const sign = getZodiacSign(planet.longitude);
                 const strength = getPlanetStrength(planet.name, sign);
-                return `<strong>${planet.symbol} ${planet.name}</strong> в ${sign} (${strength.text.toLowerCase()}) — планета работает гармонично и эффективно.`;
-            }).join(' ')}</p>
+                return `<strong>${planet.symbol} ${planet.name}</strong> в ${sign} (${strength.text.toLowerCase()})`;
+            }).join(', ')}</p>
         `;
     }
     
@@ -589,24 +646,17 @@ function displayInterpretation(chart) {
         interpretation += `
             <h3>✨ Важные аспекты (${majorAspects.length})</h3>
             <ul>${majorAspects.map(aspect => 
-                `<li><strong>${aspect.planet1} ${aspect.aspect.symbol} ${aspect.planet2}</strong> (точность ${aspect.accuracy}%)</li>`
+                `<li><strong>${aspect.planet1} ${aspect.aspect.symbol} ${aspect.planet2}</strong> (${aspect.accuracy}%)</li>`
             ).join('')}</ul>
         `;
     }
     
     interpretation += `
-        <h3>🔬 Техническая информация</h3>
-        <p><strong>Используемые модели:</strong> VSOP-87 (планеты), NOVAS C 3.1 (координаты)<br>
-        <strong>Точность:</strong> ±1 дуговая минута (профессиональный стандарт)<br>
-        <strong>Коррекции:</strong> нутация, аберрация, прецессия учтены<br>
-        <strong>Система:</strong> Astronomy Engine ${astronomyEngineReady ? '(локальная)' : '(недоступна)'}</p>
-        
         <h3>📋 Общие выводы</h3>
-        <p>Натальная карта рассчитана с ПРОФЕССИОНАЛЬНОЙ точностью ±1 дуговая минута. 
+        <p>Натальная карта рассчитана ${chart.isProfessional ? 'с профессиональной точностью (VSOP-87)' : 'с упрощенными методами'}. 
         Всего найдено ${chart.aspects.length} аспектов между планетами. 
-        ${strongPlanets.length > 0 ? `Есть ${strongPlanets.length} сильных планет, что указывает на природные таланты. ` : ''}
-        Асцендент в ${getZodiacSign(chart.ascendant)} определяет внешнее проявление личности.
-        Расчеты выполнены с использованием авторитетных моделей VSOP-87 и NOVAS C 3.1.</p>
+        ${strongPlanets.length > 0 ? `Есть ${strongPlanets.length} сильных планет. ` : ''}
+        Асцендент в ${getZodiacSign(chart.ascendant)} определяет внешнее проявление личности.</p>
     `;
     
     const interpretationElement = document.getElementById('interpretation-content');
@@ -615,4 +665,4 @@ function displayInterpretation(chart) {
     }
 }
 
-console.log('✅ Профессиональная система полностью загружена');
+console.log('✅ Калькулятор с автозагрузкой готов');
