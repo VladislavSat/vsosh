@@ -8,6 +8,23 @@
 </head>
 
 <body class="app-container">
+    <!-- Форма входа по паролю -->
+    <div id="loginScreen" class="login-screen" style="display: none;">
+        <div class="login-container">
+            <div class="login-card">
+                <h2 class="login-title">Вход в систему ВсОШ</h2>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="passwordInput" class="form-label">Пароль:</label>
+                        <input type="password" id="passwordInput" class="form-control" placeholder="Введите пароль" required>
+                    </div>
+                    <div id="errorMessage" class="error-message hidden">Неверный пароль</div>
+                    <button type="submit" class="btn btn--primary btn--full-width">Войти</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="notification-container"></div>
 
     <!-- Header -->
