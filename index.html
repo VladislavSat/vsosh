@@ -4,10 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ВсОШ 4.2.0 - Учёт участников олимпиады</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style_with_auth.css">
 </head>
 
 <body class="app-container">
+    <!-- Форма входа по паролю -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-card">
+                <h2 class="login-title">Вход в систему ВсОШ</h2>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="passwordInput" class="form-label">Пароль:</label>
+                        <input type="password" id="passwordInput" class="form-control" placeholder="Введите пароль" required>
+                    </div>
+                    <div id="errorMessage" class="error-message hidden">Неверный пароль</div>
+                    <button type="submit" class="btn btn--primary btn--full-width">Войти</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="notification-container"></div>
 
     <!-- Header -->
@@ -468,6 +485,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app_with_auth.js"></script>
 </body>
 </html>
