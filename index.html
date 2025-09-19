@@ -3,410 +3,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профессиональный Астрологический Калькулятор</title>
-    
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #fff;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-        
-        .description {
-            font-size: 1rem;
-            opacity: 0.8;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        }
-        
-        .card__header h2, .card__header h3 {
-            margin-bottom: 20px;
-            color: #fff;
-            font-size: 1.5rem;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .form-group {
-            flex: 1;
-            min-width: 250px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #fff;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.9);
-            color: #333;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.4);
-            background: rgba(255,255,255,1);
-        }
-        
-        .coordinates-section {
-            display: none;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 20px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .table-container {
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        th {
-            background: rgba(255,255,255,0.1);
-            font-weight: 600;
-            color: #fff;
-        }
-        
-        tr:hover {
-            background: rgba(255,255,255,0.08);
-        }
-        
-        .strength-exalted { color: #4ECDC4; font-weight: bold; }
-        .strength-dignified { color: #66BB6A; font-weight: bold; }
-        .strength-neutral { color: #FFA726; }
-        .strength-detriment { color: #FF7043; }
-        .strength-fall { color: #EF5350; }
-        
-        .aspect-conjunction { color: #FFD700; }
-        .aspect-sextile { color: #4CAF50; }
-        .aspect-square { color: #F44336; }
-        .aspect-trine { color: #2196F3; }
-        .aspect-opposition { color: #FF5722; }
-        
-        .chart-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
-        }
-        
-        @media (max-width: 768px) {
-            .chart-row {
-                grid-template-columns: 1fr;
-            }
-            .form-row {
-                flex-direction: column;
-            }
-            .form-group {
-                min-width: auto;
-            }
-        }
-        
-        .interpretation-section {
-            background: rgba(255,255,255,0.08);
-        }
-        
-        .interpretation-section h3 {
-            color: #4ECDC4;
-            margin: 20px 0 10px 0;
-        }
-        
-        .interpretation-section ul {
-            margin-left: 20px;
-        }
-        
-        .interpretation-section li {
-            margin-bottom: 8px;
-        }
-    </style>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Astronomy Engine - ПРАВИЛЬНАЯ ссылка на browser-версию -->
-    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"></script>
+    <title>ВсОШ 4.2.0 - Учёт участников олимпиады</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🌟 Профессиональный Астрологический Калькулятор</h1>
-            <p class="subtitle">Точные расчеты с использованием Astronomy Engine (±1 дуговая минута)</p>
-            <p class="description">Профессиональная библиотека обеспечивает астрономическую точность расчетов планетарных позиций, что критически важно для серьезной астрологической работы.</p>
-        </header>
-        
-        <section class="input-section">
-            <div class="card">
-                <div class="card__header">
-                    <h2>📅 Данные рождения</h2>
+
+<body class="app-container">
+    <div class="notification-container"></div>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="app-title">ВсОШ <span class="version">4.2.0</span></h1>
+            <nav class="header-nav">
+                <!-- Data menu dropdown -->
+                <div class="dropdown">
+                    <button id="dataMenuBtn" class="btn btn--secondary">Данные <span class="dropdown-arrow">▼</span></button>
+                    <div id="dataDropdown" class="dropdown-content">
+                        <button id="exportBtn" class="dropdown-item">📤 Экспорт данных</button>
+                        <button id="importBtn" class="dropdown-item">📥 Импорт данных</button>
+                        <hr class="dropdown-divider">
+                        <button id="createBackupBtn" class="dropdown-item">💾 Создать резерв. копию</button>
+                        <button id="restoreBackupBtn" class="dropdown-item">🔄 Восстановить из копии</button>
+                    </div>
                 </div>
-                <div class="card__body">
-                    <form id="birth-form" class="birth-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="birth-date" class="form-label">Дата рождения</label>
-                                <input type="date" id="birth-date" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="birth-time" class="form-label">Время рождения</label>
-                                <input type="time" id="birth-time" class="form-control" step="60" required>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="city" class="form-label">Город</label>
-                                <select id="city" class="form-control">
-                                    <option value="">Выберите город</option>
-                                    <option value="moscow">🏛️ Москва</option>
-                                    <option value="spb">🏰 Санкт-Петербург</option>
-                                    <option value="novosibirsk">🏭 Новосибирск</option>
-                                    <option value="ekaterinburg">⛰️ Екатеринбург</option>
-                                    <option value="nizhny">🏭 Нижний Новгород</option>
-                                    <option value="kazan">🕌 Казань</option>
-                                    <option value="krasnodar">🌻 Краснодар</option>
-                                    <option value="london">🌉 Лондон</option>
-                                    <option value="newyork">🗽 Нью-Йорк</option>
-                                    <option value="paris">🗼 Париж</option>
-                                    <option value="tokyo">🗾 Токио</option>
-                                    <option value="delhi">🕌 Дели</option>
-                                    <option value="custom">✏️ Другой город...</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="house-system" class="form-label">Система домов</label>
-                                <select id="house-system" class="form-control">
-                                    <option value="placidus">Placidus</option>
-                                    <option value="koch">Koch</option>
-                                    <option value="equal">Equal House</option>
-                                    <option value="whole">Whole Sign</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="coordinates-section" id="coordinates-section">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="latitude" class="form-label">Широта</label>
-                                    <input type="number" id="latitude" class="form-control" step="0.0001" min="-90" max="90" placeholder="55.7558">
-                                </div>
-                                <div class="form-group">
-                                    <label for="longitude" class="form-label">Долгота</label>
-                                    <input type="number" id="longitude" class="form-control" step="0.0001" min="-180" max="180" placeholder="37.6176">
-                                </div>
-                                <div class="form-group">
-                                    <label for="timezone" class="form-label">Часовой пояс (UTC)</label>
-                                    <input type="number" id="timezone" class="form-control" step="0.5" min="-12" max="14" placeholder="3">
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <span class="btn-text">🔮 Рассчитать натальную карту</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </section>
-        
-        <section class="results-section hidden" id="results-section">
-            <div class="birth-info card">
-                <div class="card__header">
-                    <h2>ℹ️ Информация о рождении</h2>
-                </div>
-                <div class="card__body">
-                    <div id="birth-info-content"></div>
-                </div>
-            </div>
-            
-            <div class="planets-section card">
-                <div class="card__header">
-                    <h2>🪐 Позиции планет</h2>
-                </div>
-                <div class="card__body">
-                    <div class="table-container">
-                        <table class="planets-table" id="planets-table">
-                            <thead>
-                                <tr>
-                                    <th>Планета</th>
-                                    <th>Знак</th>
-                                    <th>Позиция</th>
-                                    <th>Дом</th>
-                                    <th>Статус</th>
-                                </tr>
-                            </thead>
-                            <tbody id="planets-tbody"></tbody>
-                        </table>
+
+                <button id="classSettingsBtn" class="btn btn--outline">Настройки классов</button>
+                <button id="teacherSettingsBtn" class="btn btn--outline">Настройки учителей</button>
+                <button id="reportsBtn" class="btn btn--primary">Отчеты</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Stage Navigation -->
+        <div class="stage-navigation">
+            <button class="stage-tab btn btn--primary" data-stage="Школьный">Школьный</button>
+            <button class="stage-tab btn btn--secondary" data-stage="Муниципальный">Муниципальный</button>
+            <button class="stage-tab btn btn--secondary" data-stage="Региональный">Региональный</button>
+            <button class="stage-tab btn btn--secondary" data-stage="Финальный">Финальный</button>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section card">
+            <div class="card__body">
+                <div class="filters-container">
+                    <div class="form-group">
+                        <label for="classFilter" class="form-label">Класс</label>
+                        <select id="classFilter" class="form-select">
+                            <option value="">Все классы</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subjectFilter" class="form-label">Предмет</label>
+                        <select id="subjectFilter" class="form-select">
+                            <option value="">Все предметы</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="searchInput" class="form-label">Поиск по ФИО</label>
+                        <input type="text" id="searchInput" class="form-input" placeholder="Введите ФИО для поиска">
                     </div>
                 </div>
             </div>
-            
-            <div class="houses-section card">
-                <div class="card__header">
-                    <h2>🏠 Астрологические дома</h2>
-                </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <div class="stat-card card">
                 <div class="card__body">
-                    <div class="table-container">
-                        <table class="houses-table" id="houses-table">
-                            <thead>
-                                <tr>
-                                    <th>Дом</th>
-                                    <th>Куспид</th>
-                                    <th>Знак</th>
-                                    <th>Правитель</th>
-                                </tr>
-                            </thead>
-                            <tbody id="houses-tbody"></tbody>
-                        </table>
-                    </div>
+                    <h3>Всего участников</h3>
+                    <div class="stat-number" id="totalParticipants">0</div>
+                    <div class="stat-subtitle">по выбранным фильтрам</div>
                 </div>
             </div>
-            
-            <div class="aspects-section card">
-                <div class="card__header">
-                    <h2>✨ Аспекты</h2>
-                </div>
+
+            <div class="stat-card card">
                 <div class="card__body">
-                    <div class="table-container">
-                        <table class="aspects-table" id="aspects-table">
-                            <thead>
-                                <tr>
-                                    <th>Планета 1</th>
-                                    <th>Аспект</th>
-                                    <th>Планета 2</th>
-                                    <th>Орб</th>
-                                    <th>Точность</th>
-                                </tr>
-                            </thead>
-                            <tbody id="aspects-tbody"></tbody>
-                        </table>
-                    </div>
+                    <h3>Победители</h3>
+                    <div class="stat-number" id="totalWinners">0</div>
+                    <div class="stat-subtitle">по выбранным фильтрам</div>
                 </div>
             </div>
-            
-            <div class="charts-section">
-                <div class="chart-row">
-                    <div class="card chart-card">
-                        <div class="card__header">
-                            <h3>📊 Распределение планет по знакам</h3>
-                        </div>
-                        <div class="card__body">
-                            <div class="chart-container" style="position: relative; height: 400px;">
-                                <canvas id="signs-chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card chart-card">
-                        <div class="card__header">
-                            <h3>💪 Сила планет</h3>
-                        </div>
-                        <div class="card__body">
-                            <div class="chart-container" style="position: relative; height: 400px;">
-                                <canvas id="strength-chart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="interpretation-section card">
-                <div class="card__header">
-                    <h2>🔮 Подробная интерпретация</h2>
-                </div>
+
+            <div class="stat-card card">
                 <div class="card__body">
-                    <div id="interpretation-content"></div>
+                    <h3>Призёры</h3>
+                    <div class="stat-number" id="totalPrizeWinners">0</div>
+                    <div class="stat-subtitle">по выбранным фильтрам</div>
                 </div>
             </div>
-        </section>
+
+            <div class="stat-card card">
+                <div class="card__body">
+                    <h3>Охват</h3>
+                    <div class="stat-number" id="coveragePercent">0%</div>
+                    <div class="stat-subtitle">доля от общего числа учеников</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content-section">
+            <!-- School Stage Content -->
+            <div id="schoolStageContent">
+                <div class="section-header">
+                    <h2>Количественные данные по предметам</h2>
+                    <button id="addQuantitativeBtn" class="btn btn--primary">Добавить данные</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Класс</th>
+                                <th>Предмет</th>
+                                <th>Участники</th>
+                                <th>Победители (ФИО)</th>
+                                <th>Призёры (ФИО)</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quantitativeTableBody">
+                            <tr class="empty-row">
+                                <td colspan="6">Добавьте количественные данные по предметам</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Other Stages Content -->
+            <div id="otherStageContent" class="hidden">
+                <div class="section-header">
+                    <h2 id="stageTitle">Участники этапа</h2>
+                    <button id="addParticipantBtn" class="btn btn--primary">Добавить участника</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Класс</th>
+                                <th>Предмет</th>
+                                <th>Статус</th>
+                                <th>Учитель</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participantsTableBody">
+                            <tr class="empty-row">
+                                <td colspan="6">Добавьте участников для данного этапа</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reports Content - ПОЛНАЯ ВЕРСИЯ С ТРЕМЯ БЛОКАМИ -->
+    <main class="reports-content hidden" id="reportsContent">
+        <div class="reports-nav">
+            <button id="backToMainBtn" class="btn btn--outline">
+                <span class="back-arrow">←</span> Назад к данным
+            </button>
+        </div>
+
+        <div class="reports-header">
+            <h2>Отчеты по олимпиаде</h2>
+
+            <!-- ФИЛЬТРЫ ДЛЯ ОТЧЕТОВ -->
+            <div class="reports-controls">
+                <div class="form-group">
+                    <label for="reportStageFilter" class="form-label">Этап</label>
+                    <select id="reportStageFilter" class="form-select">
+                        <option value="">Все этапы</option>
+                        <option value="Школьный">Школьный</option>
+                        <option value="Муниципальный">Муниципальный</option>
+                        <option value="Региональный">Региональный</option>
+                        <option value="Финальный">Финальный</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reportClassFilter" class="form-label">Класс</label>
+                    <select id="reportClassFilter" class="form-select">
+                        <option value="">Все классы</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reportSubjectFilter" class="form-label">Предмет</label>
+                    <select id="reportSubjectFilter" class="form-select">
+                        <option value="">Все предметы</option>
+                    </select>
+                </div>
+
+                <button id="updateReportsBtn" class="btn btn--primary">Обновить отчёты</button>
+                <button id="exportReportsBtn" class="btn btn--secondary">Экспорт отчётов</button>
+            </div>
+        </div>
+
+        <!-- ТРИ БЛОКА ОТЧЕТОВ -->
+        <div class="reports-data" id="reportsData">
+            <!-- 1. СВОДКА ПО КЛАССАМ -->
+            <div class="report-section">
+                <h3>Сводка по классам</h3>
+                <div class="table-container">
+                    <table class="data-table" id="classReportsTable">
+                        <thead>
+                            <tr>
+                                <th>Класс</th>
+                                <th>Участников</th>
+                                <th>Победителей</th>
+                                <th>Призёров</th>
+                                <th>Охват</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classReportsTableBody">
+                            <tr class="empty-row">
+                                <td colspan="5">Выберите фильтры и нажмите "Обновить отчёты"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. СВОДКА ПО ПРЕДМЕТАМ -->
+            <div class="report-section">
+                <h3>Сводка по предметам</h3>
+                <div class="table-container">
+                    <table class="data-table" id="subjectReportsTable">
+                        <thead>
+                            <tr>
+                                <th>Предмет</th>
+                                <th>Участников</th>
+                                <th>Победителей</th>
+                                <th>Призёров</th>
+                                <th>Эффективность</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subjectReportsTableBody">
+                            <tr class="empty-row">
+                                <td colspan="5">Выберите фильтры и нажмите "Обновить отчёты"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. РЕЙТИНГ УЧАСТНИКОВ -->
+            <div class="report-section">
+                <h3>Рейтинг участников</h3>
+                <div class="table-container">
+                    <table class="data-table" id="participantsReportsTable">
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Класс</th>
+                                <th>Предмет</th>
+                                <th>Этап</th>
+                                <th>Статус</th>
+                                <th>Баллы</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participantsReportsTableBody">
+                            <tr class="empty-row">
+                                <td colspan="6">Участники для выбранного этапа отсутствуют</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+
+    <!-- Participant Modal -->
+    <div id="participantModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="participantModalTitle">Добавить участника</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="participantFio" class="form-label">ФИО участника</label>
+                    <input type="text" id="participantFio" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="participantClass" class="form-label">Класс</label>
+                    <select id="participantClass" class="form-select" required>
+                        <option value="">Выберите класс</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="participantSubject" class="form-label">Предмет</label>
+                    <select id="participantSubject" class="form-select" required>
+                        <option value="">Выберите предмет</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="participantStatus" class="form-label">Статус</label>
+                    <select id="participantStatus" class="form-select" required>
+                        <option value="">Выберите статус</option>
+                        <option value="Участник">Участник</option>
+                        <option value="Призёр">Призёр</option>
+                        <option value="Победитель">Победитель</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="participantTeacher" class="form-label">Учитель</label>
+                    <input type="text" id="participantTeacher" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="participantCancelBtn" class="btn btn--outline">Отмена</button>
+                <button id="participantSaveBtn" class="btn btn--primary">Сохранить</button>
+            </div>
+        </div>
     </div>
-    
+
+    <!-- Quantitative Modal -->
+    <div id="quantitativeModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="quantitativeModalTitle">Добавить количественные данные</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="quantitativeClass" class="form-label">Класс</label>
+                    <select id="quantitativeClass" class="form-select" required>
+                        <option value="">Выберите класс</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantitativeSubject" class="form-label">Предмет</label>
+                    <select id="quantitativeSubject" class="form-select" required>
+                        <option value="">Выберите предмет</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantitativeParticipants" class="form-label">Количество участников</label>
+                    <input type="number" id="quantitativeParticipants" class="form-input" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantitativeWinners" class="form-label">Победители (ФИО через запятую)</label>
+                    <textarea id="quantitativeWinners" class="form-textarea" rows="3" placeholder="Иванов И.И., Петров П.П."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantitativePrizeWinners" class="form-label">Призёры (ФИО через запятую)</label>
+                    <textarea id="quantitativePrizeWinners" class="form-textarea" rows="3" placeholder="Сидоров С.С., Козлов К.К."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="quantitativeCancelBtn" class="btn btn--outline">Отмена</button>
+                <button id="quantitativeSaveBtn" class="btn btn--primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Импорт данных</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="importFileInput" class="form-label">Выберите файл для импорта</label>
+                    <input type="file" id="importFileInput" class="form-input" accept=".json">
+                </div>
+
+                <div id="importPreview" class="import-preview" style="display: none;">
+                    <h4>Предварительный просмотр данных:</h4>
+                    <div id="importPreviewContent"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="importCancelBtn" class="btn btn--outline">Отмена</button>
+                <button id="importConfirmBtn" class="btn btn--primary" style="display: none;">Подтвердить импорт</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Modal -->
+    <div id="restoreModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Восстановление из резервной копии</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="backupsList" class="backups-list">
+                    <p>Нет доступных резервных копий</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="restoreCloseBtn" class="btn btn--outline">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Settings Modal -->
+    <div id="classModal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Настройка классов</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="classes-management">
+                    <div class="section-header">
+                        <h4>Список классов</h4>
+                        <button id="addClassBtn" class="btn btn--primary">Добавить класс</button>
+                    </div>
+                    <div id="classesList" class="classes-list">
+                        Классы не добавлены
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="classModalCloseBtn" class="btn btn--primary">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Settings Modal -->
+    <div id="teacherModal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Настройка учителей</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="teachers-management">
+                    <div class="section-header">
+                        <h4>Список учителей</h4>
+                        <button id="addTeacherBtn" class="btn btn--primary">Добавить учителя</button>
+                    </div>
+                    <div id="teachersList" class="teachers-list">
+                        Учителя не добавлены
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="teacherModalCloseBtn" class="btn btn--primary">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
