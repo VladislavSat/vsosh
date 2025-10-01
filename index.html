@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ВсОШ 4.2.0 - Учёт участников олимпиады</title>
+    <title>Олимпиады 4.2.0 - Управление данными</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body class="app-container">
     <div class="notification-container"></div>
 
     <!-- Header -->
     <header class="app-header">
         <div class="header-content">
-            <h1 class="app-title">ВсОШ <span class="version">4.2.0</span></h1>
+            <h1 class="app-title">Олимпиады <span class="version">4.2.0</span></h1>
             <nav class="header-nav">
                 <!-- Data menu dropdown -->
                 <div class="dropdown">
-                    <button id="dataMenuBtn" class="btn btn--secondary">Данные <span class="dropdown-arrow">▼</span></button>
+                    <button id="dataMenuBtn" class="btn btn--secondary">
+                        Данные <span class="dropdown-arrow">▼</span>
+                    </button>
                     <div id="dataDropdown" class="dropdown-content">
-                        <button id="exportBtn" class="dropdown-item">📤 Экспорт данных</button>
-                        <button id="importBtn" class="dropdown-item">📥 Импорт данных</button>
+                        <button id="exportBtn" class="dropdown-item">🔽 Экспорт данных</button>
+                        <button id="importBtn" class="dropdown-item">🔼 Импорт данных</button>
                         <hr class="dropdown-divider">
-                        <button id="createBackupBtn" class="dropdown-item">💾 Создать резерв. копию</button>
-                        <button id="restoreBackupBtn" class="dropdown-item">🔄 Восстановить из копии</button>
+                        <button id="createBackupBtn" class="dropdown-item">💾 Создать резервную копию</button>
+                        <button id="restoreBackupBtn" class="dropdown-item">⚡ Восстановить из копии</button>
                     </div>
                 </div>
 
-                <button id="classSettingsBtn" class="btn btn--outline">Настройки классов</button>
-                <button id="teacherSettingsBtn" class="btn btn--outline">Настройки учителей</button>
-                <button id="reportsBtn" class="btn btn--primary">Отчеты</button>
+                <button id="classSettingsBtn" class="btn btn--outline">⚙️ Классы</button>
+                <button id="teacherSettingsBtn" class="btn btn--outline">👩‍🏫 Учителя</button>
+                <button id="reportsBtn" class="btn btn--primary">📊 Отчеты</button>
             </nav>
         </div>
     </header>
@@ -38,15 +39,15 @@
     <main class="main-content" id="mainContent">
         <!-- Stage Navigation -->
         <div class="stage-navigation">
-            <button class="stage-tab btn btn--primary" data-stage="Школьный">Школьный</button>
-            <button class="stage-tab btn btn--secondary" data-stage="Муниципальный">Муниципальный</button>
-            <button class="stage-tab btn btn--secondary" data-stage="Региональный">Региональный</button>
-            <button class="stage-tab btn btn--secondary" data-stage="Финальный">Финальный</button>
+            <button class="stage-tab btn btn--primary" data-stage="школьный">Школьный этап</button>
+            <button class="stage-tab btn btn--secondary" data-stage="муниципальный">Муниципальный</button>
+            <button class="stage-tab btn btn--secondary" data-stage="региональный">Региональный</button>
+            <button class="stage-tab btn btn--secondary" data-stage="заключительный">Заключительный</button>
         </div>
 
         <!-- Filters Section -->
         <div class="filters-section card">
-            <div class="card__body">
+            <div class="card-body">
                 <div class="filters-container">
                     <div class="form-group">
                         <label for="classFilter" class="form-label">Класс</label>
@@ -63,8 +64,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="searchInput" class="form-label">Поиск по ФИО</label>
-                        <input type="text" id="searchInput" class="form-input" placeholder="Введите ФИО для поиска">
+                        <label for="searchInput" class="form-label">Поиск участника</label>
+                        <input type="text" id="searchInput" class="form-input" placeholder="Введите ФИО...">
                     </div>
                 </div>
             </div>
@@ -73,7 +74,7 @@
         <!-- Statistics Section -->
         <div class="stats-section">
             <div class="stat-card card">
-                <div class="card__body">
+                <div class="card-body">
                     <h3>Всего участников</h3>
                     <div class="stat-number" id="totalParticipants">0</div>
                     <div class="stat-subtitle">по выбранным фильтрам</div>
@@ -81,7 +82,7 @@
             </div>
 
             <div class="stat-card card">
-                <div class="card__body">
+                <div class="card-body">
                     <h3>Победители</h3>
                     <div class="stat-number" id="totalWinners">0</div>
                     <div class="stat-subtitle">по выбранным фильтрам</div>
@@ -89,7 +90,7 @@
             </div>
 
             <div class="stat-card card">
-                <div class="card__body">
+                <div class="card-body">
                     <h3>Призёры</h3>
                     <div class="stat-number" id="totalPrizeWinners">0</div>
                     <div class="stat-subtitle">по выбранным фильтрам</div>
@@ -97,10 +98,10 @@
             </div>
 
             <div class="stat-card card">
-                <div class="card__body">
+                <div class="card-body">
                     <h3>Охват</h3>
-                    <div class="stat-number" id="coveragePercent">0%</div>
-                    <div class="stat-subtitle">доля от общего числа учеников</div>
+                    <div class="stat-number" id="coveragePercent">0</div>
+                    <div class="stat-subtitle">% доля от общего числа учеников</div>
                 </div>
             </div>
         </div>
@@ -111,7 +112,7 @@
             <div id="schoolStageContent">
                 <div class="section-header">
                     <h2>Количественные данные по предметам</h2>
-                    <button id="addQuantitativeBtn" class="btn btn--primary">Добавить данные</button>
+                    <button id="addQuantitativeBtn" class="btn btn--primary">➕ Добавить данные</button>
                 </div>
 
                 <div class="table-container">
@@ -139,7 +140,7 @@
             <div id="otherStageContent" class="hidden">
                 <div class="section-header">
                     <h2 id="stageTitle">Участники этапа</h2>
-                    <button id="addParticipantBtn" class="btn btn--primary">Добавить участника</button>
+                    <button id="addParticipantBtn" class="btn btn--primary">➕ Добавить участника</button>
                 </div>
 
                 <div class="table-container">
@@ -165,100 +166,100 @@
         </div>
     </main>
 
-    <!-- Reports Content - ПОЛНАЯ ВЕРСИЯ С ТРЕМЯ БЛОКАМИ -->
+    <!-- Reports Content -->
     <main class="reports-content hidden" id="reportsContent">
         <div class="reports-nav">
             <button id="backToMainBtn" class="btn btn--outline">
-                <span class="back-arrow">←</span> Назад к данным
+                <span class="back-arrow">←</span> Назад
             </button>
         </div>
 
         <div class="reports-header">
-            <h2>Отчеты по олимпиаде</h2>
-
-            <!-- ФИЛЬТРЫ ДЛЯ ОТЧЕТОВ -->
-            <div class="reports-controls">
-                <div class="form-group">
-                    <label for="reportStageFilter" class="form-label">Этап</label>
-                    <select id="reportStageFilter" class="form-select">
-                        <option value="">Все этапы</option>
-                        <option value="Школьный">Школьный</option>
-                        <option value="Муниципальный">Муниципальный</option>
-                        <option value="Региональный">Региональный</option>
-                        <option value="Финальный">Финальный</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="reportClassFilter" class="form-label">Класс</label>
-                    <select id="reportClassFilter" class="form-select">
-                        <option value="">Все классы</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="reportSubjectFilter" class="form-label">Предмет</label>
-                    <select id="reportSubjectFilter" class="form-select">
-                        <option value="">Все предметы</option>
-                    </select>
-                </div>
-
-                <button id="updateReportsBtn" class="btn btn--primary">Обновить отчёты</button>
-                <button id="exportReportsBtn" class="btn btn--secondary">Экспорт отчётов</button>
-            </div>
+            <h2>Отчеты по олимпиадам</h2>
         </div>
 
-        <!-- ТРИ БЛОКА ОТЧЕТОВ -->
+        <!-- Фильтры отчетов -->
+        <div class="reports-controls">
+            <div class="form-group">
+                <label for="reportStageFilter" class="form-label">Этап</label>
+                <select id="reportStageFilter" class="form-select">
+                    <option value="">Все этапы</option>
+                    <option value="школьный">Школьный</option>
+                    <option value="муниципальный">Муниципальный</option>
+                    <option value="региональный">Региональный</option>
+                    <option value="заключительный">Заключительный</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="reportClassFilter" class="form-label">Класс</label>
+                <select id="reportClassFilter" class="form-select">
+                    <option value="">Все классы</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="reportSubjectFilter" class="form-label">Предмет</label>
+                <select id="reportSubjectFilter" class="form-select">
+                    <option value="">Все предметы</option>
+                </select>
+            </div>
+
+            <button id="updateReportsBtn" class="btn btn--primary">Обновить отчеты</button>
+            <button id="exportReportsBtn" class="btn btn--secondary">Экспорт в CSV</button>
+        </div>
+
+        <!-- Данные отчетов -->
         <div class="reports-data" id="reportsData">
-            <!-- 1. СВОДКА ПО КЛАССАМ -->
+            <!-- 1. Отчет по классам -->
             <div class="report-section">
-                <h3>Сводка по классам</h3>
+                <h3>Отчет по классам</h3>
                 <div class="table-container">
                     <table class="data-table" id="classReportsTable">
                         <thead>
                             <tr>
                                 <th>Класс</th>
-                                <th>Участников</th>
-                                <th>Победителей</th>
-                                <th>Призёров</th>
-                                <th>Охват</th>
+                                <th>Участники</th>
+                                <th>Победители</th>
+                                <th>Призёры</th>
+                                <th>Охват (%)</th>
                             </tr>
                         </thead>
                         <tbody id="classReportsTableBody">
                             <tr class="empty-row">
-                                <td colspan="5">Выберите фильтры и нажмите "Обновить отчёты"</td>
+                                <td colspan="5">Нет данных для отображения</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 2. СВОДКА ПО ПРЕДМЕТАМ -->
+            <!-- 2. Отчет по предметам -->
             <div class="report-section">
-                <h3>Сводка по предметам</h3>
+                <h3>Отчет по предметам</h3>
                 <div class="table-container">
                     <table class="data-table" id="subjectReportsTable">
                         <thead>
                             <tr>
                                 <th>Предмет</th>
-                                <th>Участников</th>
-                                <th>Победителей</th>
-                                <th>Призёров</th>
-                                <th>Эффективность</th>
+                                <th>Участники</th>
+                                <th>Победители</th>
+                                <th>Призёры</th>
+                                <th>Результативность (%)</th>
                             </tr>
                         </thead>
                         <tbody id="subjectReportsTableBody">
                             <tr class="empty-row">
-                                <td colspan="5">Выберите фильтры и нажмите "Обновить отчёты"</td>
+                                <td colspan="5">Нет данных для отображения</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 3. РЕЙТИНГ УЧАСТНИКОВ -->
+            <!-- 3. Отчет по участникам -->
             <div class="report-section">
-                <h3>Рейтинг участников</h3>
+                <h3>Отчет по участникам</h3>
                 <div class="table-container">
                     <table class="data-table" id="participantsReportsTable">
                         <thead>
@@ -273,7 +274,7 @@
                         </thead>
                         <tbody id="participantsReportsTableBody">
                             <tr class="empty-row">
-                                <td colspan="6">Участники для выбранного этапа отсутствуют</td>
+                                <td colspan="6">Нет данных для отображения</td>
                             </tr>
                         </tbody>
                     </table>
@@ -283,7 +284,6 @@
     </main>
 
     <!-- Modals -->
-
     <!-- Participant Modal -->
     <div id="participantModal" class="modal hidden">
         <div class="modal-content">
@@ -293,32 +293,37 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="participantFio" class="form-label">ФИО участника</label>
+                    <label for="participantFio" class="form-label">ФИО *</label>
                     <input type="text" id="participantFio" class="form-input" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="participantClass" class="form-label">Класс</label>
+                    <label for="participantClass" class="form-label">Класс *</label>
                     <select id="participantClass" class="form-select" required>
                         <option value="">Выберите класс</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="participantSubject" class="form-label">Предмет</label>
+                    <label for="participantSubject" class="form-label">Предмет *</label>
                     <select id="participantSubject" class="form-select" required>
                         <option value="">Выберите предмет</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="participantStatus" class="form-label">Статус</label>
+                    <label for="participantStatus" class="form-label">Статус *</label>
                     <select id="participantStatus" class="form-select" required>
                         <option value="">Выберите статус</option>
-                        <option value="Участник">Участник</option>
-                        <option value="Призёр">Призёр</option>
-                        <option value="Победитель">Победитель</option>
+                        <option value="победитель">Победитель</option>
+                        <option value="призёр">Призёр</option>
+                        <option value="участник">Участник</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="participantPoints" class="form-label">Баллы</label>
+                    <input type="number" id="participantPoints" class="form-input" min="0" step="0.1" placeholder="Введите количество баллов">
                 </div>
 
                 <div class="form-group">
@@ -342,32 +347,34 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="quantitativeClass" class="form-label">Класс</label>
+                    <label for="quantitativeClass" class="form-label">Класс *</label>
                     <select id="quantitativeClass" class="form-select" required>
                         <option value="">Выберите класс</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="quantitativeSubject" class="form-label">Предмет</label>
+                    <label for="quantitativeSubject" class="form-label">Предмет *</label>
                     <select id="quantitativeSubject" class="form-select" required>
                         <option value="">Выберите предмет</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="quantitativeParticipants" class="form-label">Количество участников</label>
+                    <label for="quantitativeParticipants" class="form-label">Количество участников *</label>
                     <input type="number" id="quantitativeParticipants" class="form-input" min="0" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="quantitativeWinners" class="form-label">Победители (ФИО через запятую)</label>
-                    <textarea id="quantitativeWinners" class="form-textarea" rows="3" placeholder="Иванов И.И., Петров П.П."></textarea>
+                    <label for="quantitativeWinners" class="form-label">Победители (ФИО)</label>
+                    <textarea id="quantitativeWinners" class="form-textarea" rows="3" 
+                             placeholder="Введите ФИО победителей через запятую..."></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="quantitativePrizeWinners" class="form-label">Призёры (ФИО через запятую)</label>
-                    <textarea id="quantitativePrizeWinners" class="form-textarea" rows="3" placeholder="Сидоров С.С., Козлов К.К."></textarea>
+                    <label for="quantitativePrizeWinners" class="form-label">Призёры (ФИО)</label>
+                    <textarea id="quantitativePrizeWinners" class="form-textarea" rows="3" 
+                             placeholder="Введите ФИО призёров через запятую..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -386,12 +393,12 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="importFileInput" class="form-label">Выберите файл для импорта</label>
+                    <label for="importFileInput" class="form-label">Выберите файл данных</label>
                     <input type="file" id="importFileInput" class="form-input" accept=".json">
                 </div>
 
                 <div id="importPreview" class="import-preview" style="display: none;">
-                    <h4>Предварительный просмотр данных:</h4>
+                    <h4>Предварительный просмотр</h4>
                     <div id="importPreviewContent"></div>
                 </div>
             </div>
@@ -411,7 +418,7 @@
             </div>
             <div class="modal-body">
                 <div id="backupsList" class="backups-list">
-                    <p>Нет доступных резервных копий</p>
+                    <p>Резервные копии не найдены</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -424,18 +431,16 @@
     <div id="classModal" class="modal hidden">
         <div class="modal-content large">
             <div class="modal-header">
-                <h3>Настройка классов</h3>
+                <h3>Управление классами</h3>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="classes-management">
                     <div class="section-header">
                         <h4>Список классов</h4>
-                        <button id="addClassBtn" class="btn btn--primary">Добавить класс</button>
+                        <button id="addClassBtn" class="btn btn--primary">➕ Добавить класс</button>
                     </div>
-                    <div id="classesList" class="classes-list">
-                        Классы не добавлены
-                    </div>
+                    <div id="classesList" class="classes-list"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -448,18 +453,16 @@
     <div id="teacherModal" class="modal hidden">
         <div class="modal-content large">
             <div class="modal-header">
-                <h3>Настройка учителей</h3>
+                <h3>Управление учителями</h3>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="teachers-management">
                     <div class="section-header">
                         <h4>Список учителей</h4>
-                        <button id="addTeacherBtn" class="btn btn--primary">Добавить учителя</button>
+                        <button id="addTeacherBtn" class="btn btn--primary">➕ Добавить учителя</button>
                     </div>
-                    <div id="teachersList" class="teachers-list">
-                        Учителя не добавлены
-                    </div>
+                    <div id="teachersList" class="teachers-list"></div>
                 </div>
             </div>
             <div class="modal-footer">
