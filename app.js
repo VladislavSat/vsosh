@@ -34,6 +34,10 @@ class VsoshApp {
                 return a.name.localeCompare(b.name, 'ru');
             }
 
+            // ИСПРАВЛЕНИЕ: Проверяем на null перед обращением к [1]
+            if (!aMatch) return 1;   // a идет после b
+            if (!bMatch) return -1;  // a идет перед b
+
             const aNum = parseInt(aMatch[1]);
             const bNum = parseInt(bMatch[1]);
             const aLetter = aMatch[2] || '';
@@ -250,6 +254,17 @@ class VsoshApp {
         const addQuantitativeBtn = document.getElementById('addQuantitativeBtn');
         if (addQuantitativeBtn) {
             addQuantitativeBtn.addEventListener('click', () => this.showQuantitativeModal());
+        }
+
+        // Add class and teacher buttons
+        const addClassBtn = document.getElementById('addClassBtn');
+        if (addClassBtn) {
+            addClassBtn.addEventListener('click', () => this.addClass());
+        }
+
+        const addTeacherBtn = document.getElementById('addTeacherBtn');
+        if (addTeacherBtn) {
+            addTeacherBtn.addEventListener('click', () => this.addTeacher());
         }
 
         // Reports filters
@@ -1823,6 +1838,55 @@ class VsoshApp {
             this.renderTeachersList();
             this.showNotification('success', 'Учитель удален', 'Данные сохранены');
         }
+    }
+
+    // Add new class
+    addClass() {
+        const name = prompt('Введите название класса (например, 5А):');
+        if (!name || name.trim() === '') return;
+
+        const totalStudents = parseInt(prompt('Введите количество учеников в классе:', '25') || '25');
+        if (isNaN(totalStudents) || totalStudents <= 0) {
+            alert('Количество учеников должно быть положительным числом');
+            return;
+        }
+
+        const classTeacher = prompt('Введите ФИО классного руководителя:', 'Не указан') || 'Не указан';
+
+        // Проверим дублирование
+        if (this.classes.find(cls => cls.name === name.trim())) {
+            alert('Класс с таким названием уже существует');
+            return;
+        }
+
+        const newClass = {
+            name: name.trim(),
+            totalStudents: totalStudents,
+            classTeacher: classTeacher.trim()
+        };
+
+        this.classes.push(newClass);
+        this.saveData();
+        this.renderClassesList();
+        this.updateFilters();
+        this.showNotification('success', 'Успех', 'Класс добавлен');
+    }
+
+    // Add new teacher
+    addTeacher() {
+        const teacher = prompt('Введите ФИО учителя:');
+        if (!teacher || teacher.trim() === '') return;
+
+        // Проверим дублирование
+        if (this.teachers.find(t => t === teacher.trim())) {
+            alert('Учитель с таким ФИО уже существует');
+            return;
+        }
+
+        this.teachers.push(teacher.trim());
+        this.saveData();
+        this.renderTeachersList();
+        this.showNotification('success', 'Успех', 'Учитель добавлен');
     }
 
     // Notifications
